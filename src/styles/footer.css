@@ -1,0 +1,186 @@
+.footer {
+  width: 100%;
+  background: #003472;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  border-radius: 0 0 14px 14px;
+}
+
+.footer-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 80px;
+  padding: 0 20px;
+}
+
+/* Profile Section */
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  height: 100%;
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.profile-image {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-image: url('/src/assests/profileimage.png');
+  background-size: cover;
+  background-position: center;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.profile-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: 400;
+  color: white;
+}
+
+.profile-role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 1px;
+}
+
+/* Nav Items */
+.nav-section {
+  display: flex;
+  flex: 1;
+  justify-content: space-evenly;
+  height: 100%;
+  width: 100%;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 0 16px;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  background-color: #062549;
+  transform: translateY(2px);
+  /* border-top-left-radius: 8px;
+  border-top-right-radius: 8px; */
+}
+
+/* Icon */
+.icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  background-color: rgba(255, 255, 255, 0.7);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: background 0.3s ease;
+}
+
+.icon.active {
+  background-color: #ffffff;
+}
+
+/* Mask Images */
+.icon-menu {
+  mask-image: url('/src/assests/Icon_2.svg');
+}
+.icon-customer {
+  mask-image: url('/src/assests/Icon_3.svg');
+}
+.icon-product {
+  mask-image: url('/src/assests/Icon_4.svg');
+}
+.icon-stock {
+  mask-image: url('/src/assests/Icon_5.svg');
+}
+.icon-deliver {
+  mask-image: url('/src/assests/Icon_1.svg');
+}
+.icon-report {
+  mask-image: url('/src/assests/Icon_6.svg');
+}
+
+/* Label */
+.nav-label {
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.nav-label.active {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+/* Underline (left vertical) */
+
+.underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background-color: #377ED1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* border-radius: 4px 4px 0 0; */
+}
+
+.underline.active {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-label {
+    font-size: 12px;
+  }
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
+  .profile-image {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-item {
+    padding: 0 8px;
+  }
+  .nav-label {
+    font-size: 11px;
+  }
+  .icon {
+    width: 14px;
+    height: 14px;
+  }
+  .profile-image {
+    width: 24px;
+    height: 24px;
+  }
+}
