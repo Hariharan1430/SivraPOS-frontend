@@ -16,7 +16,7 @@ const Footer: React.FC<FooterProps> = ({ activeTab, setActiveTab }) => {
     { id: 'menu', label: 'Menu' },
     { id: 'product', label: 'Product' },
     { id: 'stock', label: 'Stock' },
-    { id: 'deliver', label: 'Deliver' },
+    { id: 'deliver', label: 'Delivery' },
     { id: 'report', label: 'Report' },
   ];
 
