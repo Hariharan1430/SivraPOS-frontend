@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/header.css';
-import logoimage from "../assests/Sivrapos.png"
+import logoimage from "../assests/Sivrapos.png";
+import orderIcon from "../assests/Icon_1.svg";
 
+// ==================== INTERFACES ====================
 interface OrderItem {
   id: number;
   name: string;
@@ -9,16 +11,27 @@ interface OrderItem {
   quantity: number;
 }
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  activeTab: string;
+}
+
+// ==================== CONSTANTS ====================
+const INITIAL_ORDER_ITEMS: OrderItem[] = [
+  { id: 1, name: 'Kebab Sisman', price: 20, quantity: 2 },
+  { id: 2, name: 'Selat Solo Eco', price: 15, quantity: 1 },
+  { id: 3, name: 'Molen Cake', price: 16, quantity: 3 },
+  { id: 4, name: 'Kue Pelangi', price: 10, quantity: 2 },
+  { id: 5, name: 'Meatball Delicious', price: 7, quantity: 1 },
+];
+
+const TAX_RATE = 0.1; // 10% tax
+
+// ==================== COMPONENT ====================
+const Header: React.FC<HeaderProps> = ({ activeTab }) => {
+  // State Management
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([
-    { id: 1, name: 'Kebab Sisman', price: 20, quantity: 2 },
-    { id: 2, name: 'Selat Solo Eco', price: 15, quantity: 1 },
-    { id: 3, name: 'Molen Cake', price: 16, quantity: 3 },
-    { id: 4, name: 'Kue Pelangi', price: 10, quantity: 2 },
-    { id: 5, name: 'Meatball Delicious', price: 7, quantity: 1 },
-  ]);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>(INITIAL_ORDER_ITEMS);
   const [selectedOrderType, setSelectedOrderType] = useState<string>('dine-in');
   const [phoneNumber, setPhoneNumber] = useState<string>('+919963174055');
   const [tableNumber, setTableNumber] = useState<string>('21');
@@ -26,92 +39,145 @@ const Header: React.FC = () => {
   const [buyerCashAmount, setBuyerCashAmount] = useState<string>('100');
   const [discount, setDiscount] = useState<string>('20');
 
-  const toggleDrawer = () => {
-    setIsDrawerOpen(!isDrawerOpen);
-  };
+  // ==================== VISIBILITY RULES ====================
+  const showSearch = ['menu', 'product', 'stock', 'deliver'].includes(activeTab);
+  const showOrderBtn = activeTab === 'menu';
+  const showNewOrderBtn = ['menu', 'stock'].includes(activeTab);
+  const showProductCategoryBtn = activeTab === 'product';
+  const showAddProductBtn = activeTab === 'product';
+  const showManageStockBtn = activeTab === 'stock';
+  const showLogoOnly = ['profile', 'report'].includes(activeTab);
 
-  const closeDrawer = () => {
-    setIsDrawerOpen(false);
-  };
+  // ==================== HANDLERS ====================
+  const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+  const closeDrawer = () => setIsDrawerOpen(false);
+  const openPaymentModal = () => setIsPaymentModalOpen(true);
+  const closePaymentModal = () => setIsPaymentModalOpen(false);
 
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity <= 0) return;
     setOrderItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+      items.map(item => (item.id === id ? { ...item, quantity: newQuantity } : item))
     );
   };
-
-  const openPaymentModal = () => {
-    setIsPaymentModalOpen(true);
-  };
-
-  const closePaymentModal = () => {
-    setIsPaymentModalOpen(false);
-  };
-
-  // Calculate totals
-  const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discountAmount = (subtotal * parseFloat(discount)) / 100;
-  const taxAmount = (subtotal * 10) / 100; // 10% tax
-  const total = subtotal - discountAmount + taxAmount;
-  const change = parseFloat(buyerCashAmount) - total;
 
   const removeItem = (id: number) => {
     setOrderItems(items => items.filter(item => item.id !== id));
   };
 
+  const handleQuantityDecrease = (item: OrderItem) => {
+    if (item.quantity === 1) {
+      removeItem(item.id);
+    } else {
+      updateQuantity(item.id, item.quantity - 1);
+    }
+  };
+
+  // ==================== CALCULATIONS ====================
+  const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = (subtotal * parseFloat(discount)) / 100;
+  const taxAmount = subtotal * TAX_RATE;
+  const total = subtotal - discountAmount + taxAmount;
+  const change = parseFloat(buyerCashAmount) - total;
+
+  // ==================== RENDER ====================
   return (
     <>
+      {/* ==================== HEADER ==================== */}
       <header className="header">
         <div className="header-container">
-          {/* Left Side - Logo and Text */}
+          {/* Logo Section */}
           <div className="header-left">
-            <div className="logo-container">
-              <img 
-                src={logoimage}
-                alt="SivraPos Logo" 
-                className="logo"
-              />
-            </div>
+            <img src={logoimage} alt="SivraPos Logo" className="logo" />
           </div>
 
-          {/* Right Side - Search and Button */}
-          <div className="header-right">
-            <div className="search-container">
-              <input 
-                type="text" 
-                placeholder="Searching for a item..."
-                className="search-input"
-              />
-              <button className="search-button">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M9.16667 15.8333C12.8486 15.8333 15.8333 12.8486 15.8333 9.16667C15.8333 5.48477 12.8486 2.5 9.16667 2.5C5.48477 2.5 2.5 5.48477 2.5 9.16667C2.5 12.8486 5.48477 15.8333 9.16667 15.8333Z" stroke="#4F567B" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M17.5 17.5L13.875 13.875" stroke="#4F567B" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
+          {/* Action Buttons Section */}
+          {!showLogoOnly && (
+            <div className="header-right">
+              {/* Search Bar */}
+              {showSearch && (
+                <div className="search-container">
+                  <input
+                    type="text"
+                    placeholder="Searching for a item..."
+                    className="search-input"
+                  />
+                  <button className="search-button" aria-label="Search">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                    >
+                      <path
+                        d="M9.16667 15.8333C12.8486 15.8333 15.8333 12.8486 15.8333 9.16667C15.8333 5.48477 12.8486 2.5 9.16667 2.5C5.48477 2.5 2.5 5.48477 2.5 9.16667C2.5 12.8486 5.48477 15.8333 9.16667 15.8333Z"
+                        stroke="#4F567B"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M17.5 17.5L13.875 13.875"
+                        stroke="#4F567B"
+                        strokeWidth="1.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Order Button */}
+              {showOrderBtn && (
+                <button
+                  className="order-icon-button"
+                  onClick={() => (window.location.href = '/order')}
+                >
+                  <img src={orderIcon} alt="Orders" className="order-icon" />
+                  Orders
+                </button>
+              )}
+
+              {/* Product Category Button */}
+              {showProductCategoryBtn && (
+                <button className="category-btn">Product Category</button>
+              )}
+
+              {/* Add Product Button */}
+              {showAddProductBtn && (
+                <button className="add-product-btn">+ Add Product</button>
+              )}
+
+              {/* Manage Stock Button */}
+              {showManageStockBtn && (
+                <button className="manage-stock-btn">Manage Stock</button>
+              )}
+
+              {/* New Order Button */}
+              {showNewOrderBtn && (
+                <button className="new-order-button" onClick={toggleDrawer}>
+                  <span className="plus-icon">+</span>
+                  <span className="button-text">New Order</span>
+                </button>
+              )}
             </div>
-            
-            <button className="new-order-button" onClick={toggleDrawer}>
-              <span className="plus-icon">+</span>
-              <span className="button-text">New Order</span>
-            </button>
-          </div>
+          )}
         </div>
       </header>
 
-      {/* Drawer Overlay */}
+      {/* ==================== ORDER DRAWER ==================== */}
       {isDrawerOpen && (
         <div className="drawer-overlay" onClick={closeDrawer}>
-          <div className="drawer-content" onClick={(e) => e.stopPropagation()}>
+          <div className="drawer-content" onClick={e => e.stopPropagation()}>
             {/* Drawer Header */}
             <div className="drawer-header">
               <h2>Review Order</h2>
               <span className="order-id">ID #2021</span>
             </div>
 
-            {/* Order Type */}
+            {/* Order Type Section */}
             <div className="order-type">
               <div className="order-type-options">
                 <label className="radio-option">
@@ -120,7 +186,7 @@ const Header: React.FC = () => {
                     name="orderType"
                     value="dine-in"
                     checked={selectedOrderType === 'dine-in'}
-                    onChange={(e) => setSelectedOrderType(e.target.value)}
+                    onChange={e => setSelectedOrderType(e.target.value)}
                   />
                   <span className="radio-custom"></span>
                   <span className="radio-label">Dine In</span>
@@ -131,19 +197,21 @@ const Header: React.FC = () => {
                     name="orderType"
                     value="take-away"
                     checked={selectedOrderType === 'take-away'}
-                    onChange={(e) => setSelectedOrderType(e.target.value)}
+                    onChange={e => setSelectedOrderType(e.target.value)}
                   />
                   <span className="radio-custom"></span>
                   <span className="radio-label">Take Away</span>
                 </label>
               </div>
+
+              {/* Customer Info */}
               <div className="order-info">
                 <div className="info-section">
-                  <span className="info-label">No Telp</span>
+                  <span className="info-label">Customer no</span>
                   <input
                     type="text"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    onChange={e => setPhoneNumber(e.target.value)}
                     className="info-input"
                   />
                 </div>
@@ -152,38 +220,34 @@ const Header: React.FC = () => {
                   <input
                     type="text"
                     value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
+                    onChange={e => setTableNumber(e.target.value)}
                     className="info-input table-input"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Order Items */}
+            {/* Order Items List */}
             <div className="order-items">
-              {orderItems.map((item) => (
+              {orderItems.map(item => (
                 <div key={item.id} className="order-item">
                   <div className="item-details">
                     <h4 className="item-name">{item.name}</h4>
                     <span className="item-price">{item.price}$</span>
                   </div>
                   <div className="quantity-controls">
-                    <button 
+                    <button
                       className="qty-btn minus-btn"
-                      onClick={() => {
-                        if (item.quantity === 1) {
-                          removeItem(item.id);
-                        } else {
-                          updateQuantity(item.id, item.quantity - 1);
-                        }
-                      }}
+                      onClick={() => handleQuantityDecrease(item)}
+                      aria-label="Decrease quantity"
                     >
                       −
                     </button>
                     <span className="quantity">{item.quantity}</span>
-                    <button 
+                    <button
                       className="qty-btn plus-btn"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      aria-label="Increase quantity"
                     >
                       +
                     </button>
@@ -196,21 +260,25 @@ const Header: React.FC = () => {
             <div className="drawer-footer">
               <div className="action-buttons">
                 <button className="save-btn">Save</button>
-                <button className="payment-btn" onClick={openPaymentModal}>Payment</button>
+                <button className="payment-btn" onClick={openPaymentModal}>
+                  Payment
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* ==================== PAYMENT MODAL ==================== */}
       {isPaymentModalOpen && (
         <div className="payment-modal-overlay" onClick={closePaymentModal}>
-          <div className="payment-modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="payment-modal-content" onClick={e => e.stopPropagation()}>
             {/* Modal Header */}
             <div className="payment-modal-header">
               <h2>Payment Review</h2>
-              <button className="cancel-btn" onClick={closePaymentModal}>Cancel</button>
+              <button className="cancel-btn" onClick={closePaymentModal}>
+                Cancel
+              </button>
             </div>
 
             {/* Payment Summary */}
@@ -243,7 +311,7 @@ const Header: React.FC = () => {
                     name="paymentMethod"
                     value="cash"
                     checked={paymentMethod === 'cash'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    onChange={e => setPaymentMethod(e.target.value)}
                   />
                   <span className="payment-radio-custom"></span>
                   <span className="payment-radio-label">Cash</span>
@@ -254,7 +322,7 @@ const Header: React.FC = () => {
                     name="paymentMethod"
                     value="card"
                     checked={paymentMethod === 'card'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    onChange={e => setPaymentMethod(e.target.value)}
                   />
                   <span className="payment-radio-custom"></span>
                   <span className="payment-radio-label">Card</span>
@@ -265,7 +333,7 @@ const Header: React.FC = () => {
                     name="paymentMethod"
                     value="split"
                     checked={paymentMethod === 'split'}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    onChange={e => setPaymentMethod(e.target.value)}
                   />
                   <span className="payment-radio-custom"></span>
                   <span className="payment-radio-label">Split Bill / Join</span>
@@ -281,7 +349,7 @@ const Header: React.FC = () => {
                   <input
                     type="text"
                     value={buyerCashAmount}
-                    onChange={(e) => setBuyerCashAmount(e.target.value)}
+                    onChange={e => setBuyerCashAmount(e.target.value)}
                     className="payment-input"
                   />
                 </div>
@@ -300,7 +368,7 @@ const Header: React.FC = () => {
                 <input
                   type="text"
                   value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
+                  onChange={e => setDiscount(e.target.value)}
                   className="payment-input discount-input"
                 />
               </div>

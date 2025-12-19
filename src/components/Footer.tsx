@@ -14,7 +14,6 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ activeTab, setActiveTab }) => {
   const navItems: NavItem[] = [
     { id: 'menu', label: 'Menu' },
-    { id: 'customer', label: 'Customer' },
     { id: 'product', label: 'Product' },
     { id: 'stock', label: 'Stock' },
     { id: 'deliver', label: 'Deliver' },

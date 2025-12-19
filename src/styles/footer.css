@@ -107,14 +107,11 @@
 .icon-menu {
   mask-image: url('/src/assests/Icon_2.svg');
 }
-.icon-customer {
-  mask-image: url('/src/assests/Icon_3.svg');
-}
 .icon-product {
-  mask-image: url('/src/assests/Icon_4.svg');
+  mask-image: url('/src/assests/Icon_5.svg');
 }
 .icon-stock {
-  mask-image: url('/src/assests/Icon_5.svg');
+  mask-image: url('/src/assests/Icon_4.svg');
 }
 .icon-deliver {
   mask-image: url('/src/assests/Icon_1.svg');

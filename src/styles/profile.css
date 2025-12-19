@@ -1,87 +1,106 @@
 @font-face {
   font-family: "HK Grotesk Regular";
   src: url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.eot");
-  src: url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.eot?#iefix")format("embedded-opentype"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff2")format("woff2"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff")format("woff"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.ttf")format("truetype"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.svg#HK Grotesk Regular")format("svg");
+  src: url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.eot?#iefix") format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff2") format("woff2"),
+    url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff") format("woff"),
+    url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.ttf") format("truetype"),
+    url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.svg#HK Grotesk Regular") format("svg");
 }
 
-/* profile_styles.css */
+.profile_widthcontainer{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+   background: #f5f6fa;
+;
+}
+/* ---------- Layout Container ---------- */
 .profile_container {
+  
+  width: 95%;
   display: flex;
   min-height: 100vh;
+  background: #f5f6fa;
   margin-bottom: 10%;
+    margin-top: 2%
+
+
 }
 
-/* Sidebar Styles */
+/* ---------- Sidebar Card ---------- */
 .profile_sidebar {
   width: 285px;
-  background-color: #ffffff;
+  background-color: #fff;
   padding: 30px 25px;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e5e7eb;
-}
-
-.profile_avatar_section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 35px;
   position: relative;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px #e0e0e0;
 }
 
-.profile_avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 12px;
-}
-
+/* ---------- Edit Button (Top Right) ---------- */
 .profile_edit_btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background: transparent;
   border: none;
   color: #3b82f6;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
-  padding: 4px 8px;
-  transition: opacity 0.2s;
+  padding: 5px;
+  font-weight: 500;
 }
 
 .profile_edit_btn:hover {
   opacity: 0.7;
 }
 
-.profile_info {
-  flex: 1;
+/* ---------- Avatar Centered ---------- */
+.profile_avatar_section {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  align-items: center;
+  margin-top: 25px; /* spacing after Edit button */
+  margin-bottom: 30px;
+}
+
+.profile_avatar {
+  width: 115px;
+  height: 115px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* ---------- User Info ---------- */
+.profile_info {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .profile_info_item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
 .profile_label {
   font-size: 12px;
   color: #6b7280;
-  font-weight: 500;
 }
 
 .profile_value {
   font-size: 14px;
   color: #1f2937;
-  line-height: 1.5;
 }
 
+/* ---------- Logout Button ---------- */
 .profile_logout_btn {
-  margin-top: 30px;
+  margin-top: auto;
   padding: 12px;
   background: transparent;
   border: 1.5px solid #3b82f6;
@@ -89,132 +108,78 @@
   color: #3b82f6;
   font-size: 14px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   transition: all 0.2s;
 }
 
 .profile_logout_btn:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
+  background-color: #f0f7ff;
+  border-color: #2563eb;
 }
 
-.profile_logout_icon {
-  font-size: 16px;
-}
-
-/* Main Content Styles */
+/* ---------- Main Section ---------- */
 .profile_main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 0px 40px
 }
 
 .profile_tabs {
   display: flex;
-  padding: 0 40px;
-  gap: 45px;
-  background-color: #F5F6FA;
+  gap: 40px;
+  /* border-bottom: 2px solid #e5e7eb; */
+  padding-bottom: 15px;
 }
 
 .profile_tab {
   background: transparent;
   border: none;
+  font-size: 15px;
+  color: #6b7280;
+  cursor: pointer;
+  padding-bottom: 6px;
+}
+
+.profile_tab_active {
+  
+  background: transparent;
+  border: none;
   padding: 20px 0;
   font-size: 14px;
-  color: #6b7280;
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
   white-space: nowrap;
   border-radius: inherit;
 
-}
-
-.profile_tab:hover {
-  color: #374151;
-}
-
-.profile_tab_active {
   color: #3b82f6;
   border-bottom-color: #3b82f6;
   font-weight: 500;
+
 }
 
 .profile_content {
-  flex: 1;
-  padding: 35px 40px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  background-color: #F5F6FA;
+  margin-top: 30px;
 }
 
-/* Split Layout for Database Settings */
-.profile_split_layout {
-  display: flex;
-  gap: 80px;
-  flex: 1;
-}
-
-.profile_left_section {
-  flex: 0 0 700px;
-  display: flex;
-  flex-direction: column;
-}
-
-.profile_right_section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.profile_form_row {
-  margin-bottom: 24px;
-}
-
+/* ---------- Input Fields ---------- */
 .profile_form_group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .profile_form_label {
   font-size: 13px;
   color: #374151;
-  font-weight: 500;
-}
-
-.profile_radio_group {
-  display: flex;
-  gap: 35px;
-}
-
-.profile_radio_label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #374151;
-}
-
-.profile_radio_input {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
+  margin-bottom: 8px;
 }
 
 .profile_input {
+  width: 100%;
   padding: 10px 14px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
-  color: #374151;
-  width: 100%;
-  transition: border-color 0.2s;
+  margin-top: 1%;
 }
 
 .profile_input:focus {
@@ -222,128 +187,39 @@
   border-color: #3b82f6;
 }
 
-/* Table Styles */
-.profile_table_section {
-  margin-top: 0;
-  flex: 1;
-}
-
-.profile_table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-.profile_table_row {
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.profile_table_cell {
-  padding: 16px 12px;
-  font-size: 14px;
-  color: #374151;
-  text-align: left;
-}
-
-.profile_table_cell:first-child {
-  padding-left: 0;
-}
-
-.profile_table_cell:last-child {
-  text-align: right;
-  padding-right: 0;
-}
-
-.profile_sort_btn {
-  background: transparent;
-  border: none;
-  font-size: 16px;
-  color: #6b7280;
-  cursor: pointer;
-  padding: 4px 8px;
-  transition: color 0.2s;
-}
-
-.profile_sort_btn:hover {
-  color: #374151;
-}
-
-/* Action Buttons */
+/* ---------- Save/Update ---------- */
 .profile_actions {
   display: flex;
-  justify-content: flex-end;
   gap: 15px;
-  margin-top: auto;
-  padding-top: 30px;
+  justify-content: flex-end;
+  margin-top: 30px;
 }
 
 .profile_save_btn,
 .profile_update_btn {
-  padding: 11px 32px;
-  border-radius: 6px;
+  padding: 11px 30px;
   font-size: 14px;
+  border-radius: 6px;
   cursor: pointer;
-  border: none;
-  transition: all 0.2s;
   font-weight: 500;
+  border: none;
 }
 
 .profile_save_btn {
-  background-color: #ffffff;
-  color: #3b82f6;
+  background: #fff;
   border: 1.5px solid #3b82f6;
-}
-
-.profile_save_btn:hover {
-  background-color: #eff6ff;
+  color: #3b82f6;
 }
 
 .profile_update_btn {
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: 1.5px solid #3b82f6;
+  background: #3b82f6;
+  color: #fff;
 }
 
-.profile_update_btn:hover {
-  background-color: #2563eb;
-}
+/* ---------- RESPONSIVE DESIGN ---------- */
 
-/* Responsive Design */
-@media screen and (max-width: 1200px) {
-  .profile_split_layout {
-    gap: 40px;
-  }
-
-  .profile_left_section {
-    flex: 0 0 350px;
-  }
-}
-
-@media screen and (max-width: 1024px) {
-  .profile_tabs {
-    padding: 0 25px;
-    gap: 30px;
-  }
-
-  .profile_content {
-    padding: 25px;
-  }
-
-  .profile_split_layout {
-    flex-direction: column;
-    gap: 30px;
-  }
-
-  .profile_left_section {
-    flex: 1;
-  }
-
-  .profile_right_section {
-    flex: 1;
-  }
-}
-
-@media screen and (max-width: 768px) {
+/* Tablet */
+@media (max-width: 992px) {
   .profile_container {
     flex-direction: column;
   }
@@ -352,82 +228,38 @@
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #e5e7eb;
-    padding: 25px;
   }
 
-  .profile_avatar {
-    width: 100px;
-    height: 100px;
-  }
-
-  .profile_info {
-    gap: 18px;
-  }
-
-  .profile_tabs {
-    overflow-x: auto;
-    padding: 0 20px;
-    gap: 25px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .profile_tab {
-    font-size: 13px;
-    padding: 18px 0;
-  }
-
-  .profile_content {
+  .profile_main {
     padding: 20px;
   }
 
-  .profile_table_section {
+  .profile_tabs {
+    gap: 20px;
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .profile_actions {
-    flex-direction: column-reverse;
-    gap: 12px;
-  }
-
-  .profile_save_btn,
-  .profile_update_btn {
-    width: 100%;
-    padding: 13px 32px;
+    padding-bottom: 10px;
   }
 }
 
-@media screen and (max-width: 480px) {
-  .profile_sidebar {
-    padding: 20px;
-  }
-
+/* Mobile */
+@media (max-width: 600px) {
   .profile_avatar {
-    width: 90px;
-    height: 90px;
+    width: 95px;
+    height: 95px;
   }
 
-  .profile_logout_btn {
+  .profile_edit_btn {
+    top: 15px;
+    right: 15px;
+    font-size: 14px;
+  }
+
+  .profile_label {
+    font-size: 11px;
+  }
+
+  .profile_value {
     font-size: 13px;
-    padding: 11px;
-  }
-
-  .profile_tabs {
-    padding: 0 15px;
-    gap: 20px;
-  }
-
-  .profile_tab {
-    font-size: 12px;
-    padding: 16px 0;
-  }
-
-  .profile_content {
-    padding: 18px 15px;
-  }
-
-  .profile_form_label {
-    font-size: 12px;
   }
 
   .profile_input {
@@ -435,22 +267,13 @@
     padding: 9px 12px;
   }
 
-  .profile_radio_group {
-    gap: 25px;
-    flex-wrap: wrap;
-  }
-
-  .profile_radio_label {
-    font-size: 13px;
-  }
-
-  .profile_table_cell {
-    padding: 12px 8px;
-    font-size: 13px;
+  .profile_actions {
+    flex-direction: column;
+    gap: 10px;
   }
 
   .profile_save_btn,
   .profile_update_btn {
-    font-size: 13px;
+    width: 100%;
   }
 }

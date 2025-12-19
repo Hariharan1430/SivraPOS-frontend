@@ -83,16 +83,14 @@ function App() {
     switch (activeTab) {
       case 'menu':
         return <div className="main-content"><MenuPage /></div>;
-      case 'customer':
-        return <div className="main-content">Customer Component</div>;
       case 'product':
         return <div className="main-content"><Product /></div>;
       case 'stock':
         return <div className="main-content"><Stock /></div>;
       case 'deliver':
-        return <div className="main-content"><Delivery /></div>;
-      case 'report':
         return <div className="main-content"><Report /></div>;
+      case 'report':
+        return <div className="main-content"><Delivery /></div>;
       case 'profile':
         return <Profile onLogout={handleLogout} />;
       default:
@@ -103,7 +101,7 @@ function App() {
   // 🧭 Layout
   return (
     <div className="app-container">
-      <Header />
+      <Header activeTab={activeTab} />
       {renderContent()}
       <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
