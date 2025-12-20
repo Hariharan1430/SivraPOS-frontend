@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useImperativeHandle, forwardRef } from 'react';
 import '../styles/header.css';
 import logoimage from "../assests/Sivrapos.png";
 import orderIcon from "../assests/Icon_1.svg";
@@ -13,31 +13,42 @@ interface OrderItem {
 
 interface HeaderProps {
   activeTab: string;
+  orderItems: OrderItem[];
+  onUpdateOrderItems: (items: OrderItem[]) => void;
+}
+
+export interface HeaderRef {
+  openDrawer: () => void;
 }
 
 // ==================== CONSTANTS ====================
-const INITIAL_ORDER_ITEMS: OrderItem[] = [
-  { id: 1, name: 'Kebab Sisman', price: 20, quantity: 2 },
-  { id: 2, name: 'Selat Solo Eco', price: 15, quantity: 1 },
-  { id: 3, name: 'Molen Cake', price: 16, quantity: 3 },
-  { id: 4, name: 'Kue Pelangi', price: 10, quantity: 2 },
-  { id: 5, name: 'Meatball Delicious', price: 7, quantity: 1 },
-];
-
 const TAX_RATE = 0.1; // 10% tax
 
 // ==================== COMPONENT ====================
-const Header: React.FC<HeaderProps> = ({ activeTab }) => {
+const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, orderItems, onUpdateOrderItems }, ref) => {
   // State Management
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>(INITIAL_ORDER_ITEMS);
   const [selectedOrderType, setSelectedOrderType] = useState<string>('dine-in');
-  const [phoneNumber, setPhoneNumber] = useState<string>('+919963174055');
-  const [tableNumber, setTableNumber] = useState<string>('21');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [tableNumber, setTableNumber] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
-  const [buyerCashAmount, setBuyerCashAmount] = useState<string>('100');
-  const [discount, setDiscount] = useState<string>('20');
+  const [buyerCashAmount, setBuyerCashAmount] = useState<string>('');
+  const [discount, setDiscount] = useState<string>('0');
+
+  // Generate Order ID
+  const generateOrderId = () => {
+    return `ORD-${Date.now()}`;
+  };
+
+  const [orderId, setOrderId] = useState(generateOrderId());
+
+  // Expose openDrawer method to parent component
+  useImperativeHandle(ref, () => ({
+    openDrawer: () => {
+      setIsDrawerOpen(true);
+    }
+  }));
 
   // ==================== VISIBILITY RULES ====================
   const showSearch = ['menu', 'product', 'stock', 'deliver'].includes(activeTab);
@@ -49,20 +60,42 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
   const showLogoOnly = ['profile', 'report'].includes(activeTab);
 
   // ==================== HANDLERS ====================
-  const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
+  
   const closeDrawer = () => setIsDrawerOpen(false);
-  const openPaymentModal = () => setIsPaymentModalOpen(true);
+  
+  const openPaymentModal = () => {
+    // Validate required fields before opening payment
+    if (selectedOrderType === 'dine-in' && !tableNumber.trim()) {
+      alert('Please enter table number for dine-in orders');
+      return;
+    }
+    if (selectedOrderType === 'take-away' && !phoneNumber.trim()) {
+      alert('Please enter customer phone number for take-away orders');
+      return;
+    }
+    setIsPaymentModalOpen(true);
+    closeDrawer();
+  };
+  
   const closePaymentModal = () => setIsPaymentModalOpen(false);
 
   const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity <= 0) return;
-    setOrderItems(items =>
-      items.map(item => (item.id === id ? { ...item, quantity: newQuantity } : item))
+    if (newQuantity <= 0) {
+      removeItem(id);
+      return;
+    }
+    const updatedItems = orderItems.map(item => 
+      item.id === id ? { ...item, quantity: newQuantity } : item
     );
+    onUpdateOrderItems(updatedItems);
   };
 
   const removeItem = (id: number) => {
-    setOrderItems(items => items.filter(item => item.id !== id));
+    const updatedItems = orderItems.filter(item => item.id !== id);
+    onUpdateOrderItems(updatedItems);
   };
 
   const handleQuantityDecrease = (item: OrderItem) => {
@@ -73,12 +106,105 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
     }
   };
 
+  const handleNewOrder = () => {
+    // Clear current order and reset form
+    onUpdateOrderItems([]);
+    setPhoneNumber('');
+    setTableNumber('');
+    setSelectedOrderType('dine-in');
+    setDiscount('0');
+    setBuyerCashAmount('');
+    setOrderId(generateOrderId());
+  };
+
+  const handleHoldOrder = () => {
+    // Validate required fields before holding
+    if (orderItems.length === 0) {
+      alert('Cannot hold an empty order');
+      return;
+    }
+    
+    if (selectedOrderType === 'dine-in' && !tableNumber.trim()) {
+      alert('Please enter table number before holding order');
+      return;
+    }
+    
+    if (selectedOrderType === 'take-away' && !phoneNumber.trim()) {
+      alert('Please enter customer phone number before holding order');
+      return;
+    }
+
+    // Save to held orders (implement with your backend/state management)
+    const heldOrder = {
+      orderId,
+      orderItems,
+      orderType: selectedOrderType,
+      phoneNumber,
+      tableNumber,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('Order held:', heldOrder);
+    
+    // Save to localStorage as backup
+    const heldOrders = JSON.parse(localStorage.getItem('heldOrders') || '[]');
+    heldOrders.push(heldOrder);
+    localStorage.setItem('heldOrders', JSON.stringify(heldOrders));
+    
+    alert(`Order ${orderId} has been held successfully`);
+    
+    // Clear current order
+    handleNewOrder();
+    closeDrawer();
+  };
+
+  const handleCompleteOrder = () => {
+    // Validate payment
+    if (paymentMethod === 'cash') {
+      const cashAmount = parseFloat(buyerCashAmount || '0');
+      if (cashAmount < total) {
+        alert('Insufficient cash amount');
+        return;
+      }
+    }
+
+    const completedOrder = {
+      orderId,
+      orderItems,
+      orderType: selectedOrderType,
+      phoneNumber: selectedOrderType === 'take-away' ? phoneNumber : '',
+      tableNumber: selectedOrderType === 'dine-in' ? tableNumber : '',
+      paymentMethod,
+      subtotal,
+      discount: discountAmount,
+      tax: taxAmount,
+      total,
+      buyerCashAmount: paymentMethod === 'cash' ? buyerCashAmount : '0',
+      change: paymentMethod === 'cash' ? change : 0,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('Order completed:', completedOrder);
+    
+    // Save to completed orders (implement with your backend)
+    const completedOrders = JSON.parse(localStorage.getItem('completedOrders') || '[]');
+    completedOrders.push(completedOrder);
+    localStorage.setItem('completedOrders', JSON.stringify(completedOrders));
+    
+    // Clear the order and close modals
+    handleNewOrder();
+    closePaymentModal();
+    closeDrawer();
+    
+    alert(`Order ${orderId} completed successfully!`);
+  };
+
   // ==================== CALCULATIONS ====================
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const discountAmount = (subtotal * parseFloat(discount)) / 100;
+  const discountAmount = (subtotal * parseFloat(discount || '0')) / 100;
   const taxAmount = subtotal * TAX_RATE;
   const total = subtotal - discountAmount + taxAmount;
-  const change = parseFloat(buyerCashAmount) - total;
+  const change = parseFloat(buyerCashAmount || '0') - total;
 
   // ==================== RENDER ====================
   return (
@@ -158,7 +284,9 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
               {/* New Order Button */}
               {showNewOrderBtn && (
                 <button className="new-order-button" onClick={toggleDrawer}>
-                  <span className="plus-icon">+</span>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
                   <span className="button-text">New Order</span>
                 </button>
               )}
@@ -173,12 +301,31 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
           <div className="drawer-content" onClick={e => e.stopPropagation()}>
             {/* Drawer Header */}
             <div className="drawer-header">
-              <h2>Review Order</h2>
-              <span className="order-id">ID #2021</span>
+              <div className="drawer-title-section">
+                <h2>Review Order</h2>
+                <button className="close-drawer-btn" onClick={closeDrawer}>
+                  ✕
+                </button>
+              </div>
+              <div className="order-id-section">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <rect x="3" y="3" width="14" height="14" rx="2" stroke="#6B9FE8" strokeWidth="1.5"/>
+                  <path d="M7 3V5M13 3V5M3 8H17" stroke="#6B9FE8" strokeWidth="1.5"/>
+                </svg>
+                <span className="order-id">{orderId}</span>
+              </div>
             </div>
 
-            {/* Order Type Section */}
-            <div className="order-type">
+            {/* New Order Button in Drawer */}
+            <button className="new-order-btn-drawer" onClick={handleNewOrder}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              New Order
+            </button>
+
+            {/* Order Type Selection */}
+            <div className="order-type-section">
               <div className="order-type-options">
                 <label className="radio-option">
                   <input
@@ -203,67 +350,113 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
                   <span className="radio-label">Take Away</span>
                 </label>
               </div>
+            </div>
 
-              {/* Customer Info */}
-              <div className="order-info">
-                <div className="info-section">
-                  <span className="info-label">Customer no</span>
-                  <input
-                    type="text"
-                    value={phoneNumber}
-                    onChange={e => setPhoneNumber(e.target.value)}
-                    className="info-input"
-                  />
-                </div>
-                <div className="info-section">
-                  <span className="info-label">Table</span>
-                  <input
-                    type="text"
-                    value={tableNumber}
-                    onChange={e => setTableNumber(e.target.value)}
-                    className="info-input table-input"
-                  />
-                </div>
+            {/* Order Information */}
+            <div className="order-info">
+              <div className="info-field">
+                <label className="info-label">Customer Phone No.</label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={e => setPhoneNumber(e.target.value)}
+                  className="info-input"
+                  placeholder="Enter phone number"
+                  required={selectedOrderType === 'take-away'}
+                />
+              </div>
+              <div className="info-field">
+                <label className="info-label">Table</label>
+                <input
+                  type="text"
+                  value={tableNumber}
+                  onChange={e => setTableNumber(e.target.value)}
+                  className="info-input table-input"
+                  placeholder="Table number"
+                  required={selectedOrderType === 'dine-in'}
+                />
               </div>
             </div>
 
             {/* Order Items List */}
-            <div className="order-items">
-              {orderItems.map(item => (
-                <div key={item.id} className="order-item">
-                  <div className="item-details">
-                    <h4 className="item-name">{item.name}</h4>
-                    <span className="item-price">{item.price}$</span>
+            <div className="order-items-section">
+              <div className="order-items-header">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M3 6h14M3 10h14M3 14h14" stroke="#1a1a1a" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <span>Order Items ({orderItems.length})</span>
+              </div>
+
+              <div className="order-items">
+                {orderItems.length === 0 ? (
+                  <div className="empty-order">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" className="empty-icon">
+                      <circle cx="32" cy="32" r="30" stroke="#E5E7EB" strokeWidth="2"/>
+                      <path d="M20 32h24M32 20v24" stroke="#E5E7EB" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    <p>No items added yet</p>
+                    <span className="empty-subtitle">Add items from menu to start order</span>
                   </div>
-                  <div className="quantity-controls">
-                    <button
-                      className="qty-btn minus-btn"
-                      onClick={() => handleQuantityDecrease(item)}
-                      aria-label="Decrease quantity"
-                    >
-                      −
-                    </button>
-                    <span className="quantity">{item.quantity}</span>
-                    <button
-                      className="qty-btn plus-btn"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      aria-label="Increase quantity"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ) : (
+                  <>
+                    {orderItems.map(item => (
+                      <div key={item.id} className="order-item">
+                        <div className="item-details">
+                          <h4 className="item-name">{item.name}</h4>
+                          <div className="item-price-calc">
+                            <span className="item-unit-price">{item.price.toFixed(2)}</span>
+                            <span className="multiply">×</span>
+                            <span className="item-total-price">{(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        </div>
+                        <div className="quantity-controls">
+                          <button
+                            className="qty-btn minus-btn"
+                            onClick={() => handleQuantityDecrease(item)}
+                            aria-label="Decrease quantity"
+                          >
+                            −
+                          </button>
+                          <span className="quantity">{item.quantity}</span>
+                          <button
+                            className="qty-btn plus-btn"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Drawer Footer */}
             <div className="drawer-footer">
-              <div className="action-buttons">
-                <button className="save-btn">Save</button>
-                <button className="payment-btn" onClick={openPaymentModal}>
-                  Payment
-                </button>
-              </div>
+              <button 
+                className="hold-order-btn" 
+                onClick={handleHoldOrder}
+                disabled={orderItems.length === 0}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M9 5v4l3 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                Hold Order
+              </button>
+              <button 
+                className="payment-btn" 
+                onClick={openPaymentModal}
+                disabled={orderItems.length === 0}
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M2 7h14" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+                Payment
+              </button>
             </div>
           </div>
         </div>
@@ -285,19 +478,19 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
             <div className="payment-summary">
               <div className="summary-row">
                 <span className="summary-label">Subtotal</span>
-                <span className="summary-value">{subtotal}$</span>
+                <span className="summary-value">{subtotal.toFixed(2)}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">Discount ({discount}%)</span>
-                <span className="summary-value">{discountAmount.toFixed(1)}$</span>
+                <span className="summary-value">-{discountAmount.toFixed(2)}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">10% tax</span>
-                <span className="summary-value">{taxAmount.toFixed(1)}$</span>
+                <span className="summary-value">{taxAmount.toFixed(2)}</span>
               </div>
               <div className="summary-row total-row">
                 <span className="summary-label">Total</span>
-                <span className="summary-value total-value">{total.toFixed(0)}$</span>
+                <span className="summary-value total-value">{total.toFixed(2)}</span>
               </div>
             </div>
 
@@ -347,42 +540,51 @@ const Header: React.FC<HeaderProps> = ({ activeTab }) => {
                 <div className="payment-input-group">
                   <label className="payment-input-label">Buyer cash amount</label>
                   <input
-                    type="text"
+                    type="number"
                     value={buyerCashAmount}
                     onChange={e => setBuyerCashAmount(e.target.value)}
                     className="payment-input"
+                    placeholder="0.00"
+                    disabled={paymentMethod !== 'cash'}
                   />
                 </div>
                 <div className="payment-input-group">
                   <label className="payment-input-label">Change</label>
                   <input
                     type="text"
-                    value={change.toFixed(0)}
+                    value={change >= 0 ? change.toFixed(2) : '0.00'}
                     readOnly
                     className="payment-input change-input"
                   />
                 </div>
               </div>
               <div className="discount-section">
-                <label className="payment-input-label">Discount</label>
+                <label className="payment-input-label">Discount (%)</label>
                 <input
-                  type="text"
+                  type="number"
                   value={discount}
                   onChange={e => setDiscount(e.target.value)}
                   className="payment-input discount-input"
+                  placeholder="0"
+                  min="0"
+                  max="100"
                 />
               </div>
             </div>
 
             {/* Complete Button */}
             <div className="payment-modal-footer">
-              <button className="complete-btn">Complete & Print</button>
+              <button className="complete-btn" onClick={handleCompleteOrder}>
+                Complete & Print
+              </button>
             </div>
           </div>
         </div>
       )}
     </>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;
