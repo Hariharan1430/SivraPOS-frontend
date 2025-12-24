@@ -464,123 +464,124 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, orderItems, onUp
 
       {/* ==================== PAYMENT MODAL ==================== */}
       {isPaymentModalOpen && (
-        <div className="payment-modal-overlay" onClick={closePaymentModal}>
-          <div className="payment-modal-content" onClick={e => e.stopPropagation()}>
-            {/* Modal Header */}
-            <div className="payment-modal-header">
-              <h2>Payment Review</h2>
-              <button className="cancel-btn" onClick={closePaymentModal}>
-                Cancel
-              </button>
-            </div>
+  <div className="payment-modal-overlay" onClick={closePaymentModal}>
+    <div className="payment-modal-content" onClick={e => e.stopPropagation()}>
+      {/* Box 1 - Modal Header */}
+      <div className="payment-modal-header">
+        <h2>Payment Review</h2>
+        <button className="cancel-btn" onClick={closePaymentModal}>
+          Cancel
+        </button>
+      </div>
 
-            {/* Payment Summary */}
-            <div className="payment-summary">
-              <div className="summary-row">
-                <span className="summary-label">Subtotal</span>
-                <span className="summary-value">{subtotal.toFixed(2)}</span>
-              </div>
-              <div className="summary-row">
-                <span className="summary-label">Discount ({discount}%)</span>
-                <span className="summary-value">-{discountAmount.toFixed(2)}</span>
-              </div>
-              <div className="summary-row">
-                <span className="summary-label">10% tax</span>
-                <span className="summary-value">{taxAmount.toFixed(2)}</span>
-              </div>
-              <div className="summary-row total-row">
-                <span className="summary-label">Total</span>
-                <span className="summary-value total-value">{total.toFixed(2)}</span>
-              </div>
-            </div>
+      {/* Box 3 - Payment Summary (Overlay Box) */}
+      <div className="payment-summary">
+        <div className="summary-row">
+          <span className="summary-label">Subtotal</span>
+          <span className="summary-value">{subtotal.toFixed(2)}</span>
+        </div>
+        <div className="summary-row">
+          <span className="summary-label">Discount ({discount}%)</span>
+          <span className="summary-value">-{discountAmount.toFixed(2)}</span>
+        </div>
+        <div className="summary-row">
+          <span className="summary-label">10% tax</span>
+          <span className="summary-value">{taxAmount.toFixed(2)}</span>
+        </div>
+        <div className="summary-row total-row">
+          <span className="summary-label">Total</span>
+          <span className="summary-value total-value">{total.toFixed(2)}</span>
+        </div>
+      </div>
 
-            {/* Payment Method */}
-            <div className="payment-method-section">
-              <h3>Payment Method</h3>
-              <div className="payment-method-options">
-                <label className="payment-radio-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cash"
-                    checked={paymentMethod === 'cash'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                  />
-                  <span className="payment-radio-custom"></span>
-                  <span className="payment-radio-label">Cash</span>
-                </label>
-                <label className="payment-radio-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="card"
-                    checked={paymentMethod === 'card'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                  />
-                  <span className="payment-radio-custom"></span>
-                  <span className="payment-radio-label">Card</span>
-                </label>
-                <label className="payment-radio-option">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="split"
-                    checked={paymentMethod === 'split'}
-                    onChange={e => setPaymentMethod(e.target.value)}
-                  />
-                  <span className="payment-radio-custom"></span>
-                  <span className="payment-radio-label">Split Bill / Join</span>
-                </label>
-              </div>
-            </div>
+      {/* Box 2 - Main Content Area */}
+      {/* Payment Method */}
+      <div className="payment-method-section">
+        <h3>Payment Method</h3>
+        <div className="payment-method-options">
+          <label className="payment-radio-option">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="cash"
+              checked={paymentMethod === 'cash'}
+              onChange={e => setPaymentMethod(e.target.value)}
+            />
+            <span className="payment-radio-custom"></span>
+            <span className="payment-radio-label">Cash</span>
+          </label>
+          <label className="payment-radio-option">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="card"
+              checked={paymentMethod === 'card'}
+              onChange={e => setPaymentMethod(e.target.value)}
+            />
+            <span className="payment-radio-custom"></span>
+            <span className="payment-radio-label">Card</span>
+          </label>
+          <label className="payment-radio-option">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="split"
+              checked={paymentMethod === 'split'}
+              onChange={e => setPaymentMethod(e.target.value)}
+            />
+            <span className="payment-radio-custom"></span>
+            <span className="payment-radio-label">Split Bill / Join</span>
+          </label>
+        </div>
+      </div>
 
-            {/* Payment Details */}
-            <div className="payment-details">
-              <div className="payment-input-row">
-                <div className="payment-input-group">
-                  <label className="payment-input-label">Buyer cash amount</label>
-                  <input
-                    type="number"
-                    value={buyerCashAmount}
-                    onChange={e => setBuyerCashAmount(e.target.value)}
-                    className="payment-input"
-                    placeholder="0.00"
-                    disabled={paymentMethod !== 'cash'}
-                  />
-                </div>
-                <div className="payment-input-group">
-                  <label className="payment-input-label">Change</label>
-                  <input
-                    type="text"
-                    value={change >= 0 ? change.toFixed(2) : '0.00'}
-                    readOnly
-                    className="payment-input change-input"
-                  />
-                </div>
-              </div>
-              <div className="discount-section">
-                <label className="payment-input-label">Discount (%)</label>
-                <input
-                  type="number"
-                  value={discount}
-                  onChange={e => setDiscount(e.target.value)}
-                  className="payment-input discount-input"
-                  placeholder="0"
-                  min="0"
-                  max="100"
-                />
-              </div>
-            </div>
-
-            {/* Complete Button */}
-            <div className="payment-modal-footer">
-              <button className="complete-btn" onClick={handleCompleteOrder}>
-                Complete & Print
-              </button>
-            </div>
+      {/* Payment Details */}
+      <div className="payment-details">
+        <div className="payment-input-row">
+          <div className="payment-input-group">
+            <label className="payment-input-label">Buyer cash amount</label>
+            <input
+              type="number"
+              value={buyerCashAmount}
+              onChange={e => setBuyerCashAmount(e.target.value)}
+              className="payment-input"
+              placeholder="0.00"
+              disabled={paymentMethod !== 'cash'}
+            />
+          </div>
+          <div className="payment-input-group">
+            <label className="payment-input-label">Change</label>
+            <input
+              type="text"
+              value={change >= 0 ? change.toFixed(2) : '0.00'}
+              readOnly
+              className="payment-input change-input"
+            />
           </div>
         </div>
-      )}
+        <div className="discount-section">
+          <label className="payment-input-label">Discount (%)</label>
+          <input
+            type="number"
+            value={discount}
+            onChange={e => setDiscount(e.target.value)}
+            className="payment-input discount-input"
+            placeholder="0"
+            min="0"
+            max="100"
+          />
+        </div>
+      </div>
+
+      {/* Complete Button */}
+      <div className="payment-modal-footer">
+        <button className="complete-btn" onClick={handleCompleteOrder}>
+          Complete & Print
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 });

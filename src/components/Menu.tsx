@@ -41,13 +41,13 @@ const MenuPage: React.FC<MenuPageProps> = ({
   // Complete menu data
   const menuData = {
     'Coffee': [
-      { id: 43, name: 'Espresso', price: 100, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 44, name: 'Cappuccino', price: 6, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 45, name: 'Latte', price: 6, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 46, name: 'Cold Brew', price: 180, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 47, name: 'Cold Coffe', price: 10, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 48, name: 'Americano', price: 5, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
-      { id: 49, name: 'Mocha', price: 7, status: 'Available', image: '/api/placeholder/200/140', category: 'Coffee' },
+      { id: 43, name: 'Espresso', price: 100, status: 'Available', image: Desert1, category: 'Coffee' },
+      { id: 44, name: 'Cappuccino', price: 6, status: 'Available', image: Desert2, category: 'Coffee' },
+      { id: 45, name: 'Latte', price: 6, status: 'Available', image: Desert5, category: 'Coffee' },
+      { id: 46, name: 'Cold Brew', price: 180, status: 'Available', image: Desert4, category: 'Coffee' },
+      { id: 47, name: 'Cold Coffe', price: 10, status: 'Available', image:Desert3, category: 'Coffee' },
+      { id: 48, name: 'Americano', price: 5, status: 'Available', image: Maincourse5, category: 'Coffee' },
+      { id: 49, name: 'Mocha', price: 7, status: 'Available', image: Maincourse2, category: 'Coffee' },
     ],
     'Dessert': [
       { id: 11, name: 'Egg Ceplok', price: 100, status: 'Available', image: Desert1, category: 'Dessert' },
@@ -69,9 +69,9 @@ const MenuPage: React.FC<MenuPageProps> = ({
       { id: 33, name: 'Cookies & Cream', price: 12, status: 'Available', image: '/api/placeholder/200/140', category: 'Ice Cream' },
     ],
     'Juice': [
-      { id: 35, name: 'Orange Juice', price: 6, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
-      { id: 36, name: 'Apple Juice', price: 6, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
-      { id: 37, name: 'Mango Juice', price: 7, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
+      { id: 35, name: 'Orange Juice', price: 6, status: 'Available', image: Desert1, category: 'Juice' },
+      { id: 36, name: 'Apple Juice', price: 6, status: 'Available', image: Desert5, category: 'Juice' },
+      { id: 37, name: 'Mango Juice', price: 7, status: 'Available', image:Desert3, category: 'Juice' },
       { id: 38, name: 'Watermelon Juice', price: 5, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
       { id: 39, name: 'Pineapple Juice', price: 6, status: 'Not Available', image: '/api/placeholder/200/140', category: 'Juice' },
       { id: 40, name: 'Mixed Fruit Juice', price: 8, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
@@ -83,7 +83,7 @@ const MenuPage: React.FC<MenuPageProps> = ({
       { id: 21, name: 'Meatball Delicious', price: 7, status: 'Available', image: Maincourse3, category: 'Snack' },
       { id: 22, name: 'Selat Solo Eco', price: 15, status: 'Available', image: Maincourse4, category: 'Snack' },
       { id: 23, name: 'Nasi Gudeg', price: 12, status: 'Available', image: Maincourse5, category: 'Snack' },
-      { id: 24, name: 'Ayam Bakar', price: 18, status: 'Available', image: '/api/placeholder/200/140', category: 'Snack' },
+      { id: 24, name: 'Ayam Bakar', price: 18, status: 'Available', image: Maincourse1, category: 'Snack' },
       { id: 25, name: 'Rendang', price: 20, status: 'Available', image: '/api/placeholder/200/140', category: 'Snack' },
     ],
   };

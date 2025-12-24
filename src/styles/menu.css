@@ -198,7 +198,6 @@
 .item-card {
   background: white;
   border-radius: 12px;
-  border: 1px solid #E5E7EB;
   overflow: hidden;
   transition: all 0.3s ease;
   position: relative;
@@ -313,14 +312,12 @@
 
 /* ==================== QUANTITY CONTROLS ON CARD ==================== */
 .quantity-controls-card {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 8px 12px;
   background: white;
-  border: 1px solid #E5E7EB;
   border-radius: 8px;
 }
 
