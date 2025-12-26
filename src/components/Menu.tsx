@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/menu.css';
 import Desert1 from '../assests/Desert1.jpg'
 import Desert2 from '../assests/Desert2.jpg'
@@ -20,32 +20,102 @@ interface MenuItem {
   category: string;
 }
 
+interface Category {
+  id: number;
+  name: string;
+  color: string;
+  initial: string;
+  deleted?: boolean;
+}
+
 interface MenuPageProps {
   onAddToOrder?: (item: MenuItem, quantity: number) => void;
   onUpdateQuantity?: (itemId: number, quantity: number) => void;
   orderItems?: { id: number; quantity: number }[];
   onOpenDrawer?: () => void;
+  isDrawerOpen?: boolean;
 }
 
 const MenuPage: React.FC<MenuPageProps> = ({ 
   onAddToOrder, 
   onUpdateQuantity, 
   orderItems = [],
-  onOpenDrawer 
+  onOpenDrawer,
+  isDrawerOpen = false
 }) => {
   const [activeCategory, setActiveCategory] = useState('Best Seller');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [statusFilter, setStatusFilter] = useState('active');
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Load categories from localStorage on mount and listen for updates
+  useEffect(() => {
+    loadCategories();
+
+    // Listen for category updates from ProductCategories component
+    const handleCategoriesUpdate = (event: CustomEvent) => {
+      console.log('Categories updated:', event.detail);
+      loadCategories();
+    };
+
+    window.addEventListener('categoriesUpdated', handleCategoriesUpdate as EventListener);
+
+    // Also listen for storage events (when localStorage changes in another tab/window)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'productCategories') {
+        loadCategories();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('categoriesUpdated', handleCategoriesUpdate as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const loadCategories = () => {
+    const savedCategories = localStorage.getItem('productCategories');
+    if (savedCategories) {
+      try {
+        const parsed: Category[] = JSON.parse(savedCategories);
+        // Filter out deleted categories
+        const activeCategories = parsed.filter(cat => !cat.deleted);
+        setCategories(activeCategories);
+        
+        // If current active category was deleted, switch to Best Seller
+        if (activeCategory !== 'Best Seller' && !activeCategories.some(cat => cat.name === activeCategory)) {
+          setActiveCategory('Best Seller');
+        }
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        setCategories(getDefaultCategories());
+      }
+    } else {
+      setCategories(getDefaultCategories());
+    }
+  };
+
+  const getDefaultCategories = (): Category[] => {
+    return [
+      { id: 1, name: 'Coffee', color: '#4CAF50', initial: 'C', deleted: false },
+      { id: 2, name: 'Dessert', color: '#FF6B6B', initial: 'D', deleted: false },
+      { id: 3, name: 'Ice Cream', color: '#4ECDC4', initial: 'I', deleted: false },
+      { id: 4, name: 'Juice', color: '#FFE66D', initial: 'J', deleted: false },
+      { id: 5, name: 'Snack', color: '#A8E6CF', initial: 'S', deleted: false },
+    ];
+  };
 
   // Complete menu data
-  const menuData = {
+  const menuData: { [key: string]: MenuItem[] } = {
     'Coffee': [
       { id: 43, name: 'Espresso', price: 100, status: 'Available', image: Desert1, category: 'Coffee' },
       { id: 44, name: 'Cappuccino', price: 6, status: 'Available', image: Desert2, category: 'Coffee' },
       { id: 45, name: 'Latte', price: 6, status: 'Available', image: Desert5, category: 'Coffee' },
       { id: 46, name: 'Cold Brew', price: 180, status: 'Available', image: Desert4, category: 'Coffee' },
-      { id: 47, name: 'Cold Coffe', price: 10, status: 'Available', image:Desert3, category: 'Coffee' },
+      { id: 47, name: 'Cold Coffe', price: 10, status: 'Available', image: Desert3, category: 'Coffee' },
       { id: 48, name: 'Americano', price: 5, status: 'Available', image: Maincourse5, category: 'Coffee' },
       { id: 49, name: 'Mocha', price: 7, status: 'Available', image: Maincourse2, category: 'Coffee' },
     ],
@@ -65,17 +135,17 @@ const MenuPage: React.FC<MenuPageProps> = ({
       { id: 29, name: 'Chocolate Ice Cream', price: 10, status: 'Available', image: Desert5, category: 'Ice Cream' },
       { id: 30, name: 'Vanilla Ice Cream', price: 9, status: 'Available', image: Desert4, category: 'Ice Cream' },
       { id: 31, name: 'Strawberry Ice Cream', price: 11, status: 'Available', image: Desert1, category: 'Ice Cream' },
-      { id: 32, name: 'Mint Ice Cream', price: 10, status: 'Available', image: '/api/placeholder/200/140', category: 'Ice Cream' },
-      { id: 33, name: 'Cookies & Cream', price: 12, status: 'Available', image: '/api/placeholder/200/140', category: 'Ice Cream' },
+      { id: 32, name: 'Mint Ice Cream', price: 10, status: 'Available', image: Desert2, category: 'Ice Cream' },
+      { id: 33, name: 'Cookies & Cream', price: 12, status: 'Available', image: Desert3, category: 'Ice Cream' },
     ],
     'Juice': [
       { id: 35, name: 'Orange Juice', price: 6, status: 'Available', image: Desert1, category: 'Juice' },
       { id: 36, name: 'Apple Juice', price: 6, status: 'Available', image: Desert5, category: 'Juice' },
-      { id: 37, name: 'Mango Juice', price: 7, status: 'Available', image:Desert3, category: 'Juice' },
-      { id: 38, name: 'Watermelon Juice', price: 5, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
-      { id: 39, name: 'Pineapple Juice', price: 6, status: 'Not Available', image: '/api/placeholder/200/140', category: 'Juice' },
-      { id: 40, name: 'Mixed Fruit Juice', price: 8, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
-      { id: 41, name: 'Carrot Juice', price: 5, status: 'Available', image: '/api/placeholder/200/140', category: 'Juice' },
+      { id: 37, name: 'Mango Juice', price: 7, status: 'Available', image: Desert3, category: 'Juice' },
+      { id: 38, name: 'Watermelon Juice', price: 5, status: 'Available', image: Desert4, category: 'Juice' },
+      { id: 39, name: 'Pineapple Juice', price: 6, status: 'Not Available', image: Desert2, category: 'Juice' },
+      { id: 40, name: 'Mixed Fruit Juice', price: 8, status: 'Available', image: Maincourse1, category: 'Juice' },
+      { id: 41, name: 'Carrot Juice', price: 5, status: 'Available', image: Maincourse2, category: 'Juice' },
     ],
     'Snack': [
       { id: 19, name: 'Delicious Food', price: 5, status: 'Available', image: Maincourse1, category: 'Snack' },
@@ -84,11 +154,12 @@ const MenuPage: React.FC<MenuPageProps> = ({
       { id: 22, name: 'Selat Solo Eco', price: 15, status: 'Available', image: Maincourse4, category: 'Snack' },
       { id: 23, name: 'Nasi Gudeg', price: 12, status: 'Available', image: Maincourse5, category: 'Snack' },
       { id: 24, name: 'Ayam Bakar', price: 18, status: 'Available', image: Maincourse1, category: 'Snack' },
-      { id: 25, name: 'Rendang', price: 20, status: 'Available', image: '/api/placeholder/200/140', category: 'Snack' },
+      { id: 25, name: 'Rendang', price: 20, status: 'Available', image: Maincourse2, category: 'Snack' },
     ],
   };
 
-  const mainCategories = ['Best Seller', 'Coffee', 'Dessert', 'Ice Cream', 'Juice', 'Snack'];
+  // Get main categories including Best Seller and dynamic categories
+  const mainCategories = ['Best Seller', ...categories.map(cat => cat.name)];
 
   const handleCategoryClick = (category: string) => {
     setActiveCategory(category);
@@ -102,10 +173,12 @@ const MenuPage: React.FC<MenuPageProps> = ({
   const handleAddClick = (item: MenuItem) => {
     if (item.status === 'Available' && onAddToOrder) {
       onAddToOrder(item, 1);
-      // Open the drawer when item is added
-      if (onOpenDrawer) {
-        onOpenDrawer();
-      }
+      // Open drawer after a short delay to ensure item is added first
+      setTimeout(() => {
+        if (onOpenDrawer) {
+          onOpenDrawer();
+        }
+      }, 100);
     }
   };
 
@@ -119,16 +192,13 @@ const MenuPage: React.FC<MenuPageProps> = ({
       }
     } else {
       if (currentQty === 0 && change > 0) {
-        // Adding new item
         if (onAddToOrder) {
           onAddToOrder(item, 1);
-          // Open the drawer when item is added
           if (onOpenDrawer) {
             onOpenDrawer();
           }
         }
       } else {
-        // Updating existing item
         if (onUpdateQuantity) {
           onUpdateQuantity(item.id, newQty);
         }
@@ -160,9 +230,15 @@ const MenuPage: React.FC<MenuPageProps> = ({
 
   const getAllBestSellerItems = () => {
     const allItems: MenuItem[] = [];
+    // Only include items from categories that exist in our current categories list
+    const activeCategoryNames = categories.map(cat => cat.name);
+    
     Object.keys(menuData).forEach(category => {
-      const categoryItems = menuData[category as keyof typeof menuData] || [];
-      allItems.push(...categoryItems);
+      // Only add items if the category is still active
+      if (activeCategoryNames.includes(category)) {
+        const categoryItems = menuData[category as keyof typeof menuData] || [];
+        allItems.push(...categoryItems);
+      }
     });
     return allItems;
   };
@@ -173,7 +249,13 @@ const MenuPage: React.FC<MenuPageProps> = ({
     if (activeCategory === 'Best Seller') {
       items = getAllBestSellerItems();
     } else {
-      items = menuData[activeCategory as keyof typeof menuData] || [];
+      // Check if the category exists in our active categories
+      if (categories.some(cat => cat.name === activeCategory)) {
+        items = menuData[activeCategory as keyof typeof menuData] || [];
+      } else {
+        // Category doesn't exist, show empty
+        items = [];
+      }
     }
 
     const sortedItems = sortItems(items);
@@ -189,57 +271,63 @@ const MenuPage: React.FC<MenuPageProps> = ({
         </div>
         
         <div className="items-grid">
-          {sortedItems.map((item) => {
-            const quantity = getItemQuantity(item.id);
-            const isInOrder = quantity > 0;
+          {sortedItems.length === 0 ? (
+            <div className="menu-empty-state">
+              <p>No items found in this category</p>
+            </div>
+          ) : (
+            sortedItems.map((item) => {
+              const quantity = getItemQuantity(item.id);
+              const isInOrder = quantity > 0;
 
-            return (
-              <div key={item.id} className="item-card">
-                <img src={item.image} alt={item.name} className="item-image" />
-                <div className="item-info">
-                  <h3>{item.name}</h3>
-                  <span className="price">{item.price.toFixed(2)}</span>
-                </div>
-                <span className={`status ${item.status === 'Available' ? 'available' : 'not-available'}`}>
-                  {item.status}
-                </span>
-                
-                {isInOrder ? (
-                  <div className="quantity-controls-card">
-                    <button 
-                      className="qty-card-btn minus"
-                      onClick={() => handleQuantityChange(item, -1)}
-                    >
-                      −
-                    </button>
-                    <span className="quantity-display">{quantity}</span>
-                    <button 
-                      className="qty-card-btn plus"
-                      onClick={() => handleQuantityChange(item, 1)}
-                    >
-                      +
-                    </button>
+              return (
+                <div key={item.id} className="item-card">
+                  <img src={item.image} alt={item.name} className="item-image" />
+                  <div className="item-info">
+                    <h3>{item.name}</h3>
+                    <span className="price">{item.price.toFixed(2)}</span>
                   </div>
-                ) : (
-                  <button 
-                    className={`add-btn ${item.status !== 'Available' ? 'disabled' : ''}`}
-                    onClick={() => handleAddClick(item)}
-                    disabled={item.status !== 'Available'}
-                  >
-                    <span className="add-icon">+</span>
-                    Add
-                  </button>
-                )}
-              </div>
-            );
-          })}
+                  <span className={`status ${item.status === 'Available' ? 'available' : 'not-available'}`}>
+                    {item.status}
+                  </span>
+                  
+                  {isInOrder ? (
+                    <div className="quantity-controls-card">
+                      <button 
+                        className="qty-card-btn minus"
+                        onClick={() => handleQuantityChange(item, -1)}
+                      >
+                        −
+                      </button>
+                      <span className="quantity-display">{quantity}</span>
+                      <button 
+                        className="qty-card-btn plus"
+                        onClick={() => handleQuantityChange(item, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      className={`add-btn ${item.status !== 'Available' ? 'disabled' : ''}`}
+                      onClick={() => handleAddClick(item)}
+                      disabled={item.status !== 'Available'}
+                    >
+                      <span className="add-icon">+</span>
+                      Add
+                    </button>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="menu-container">
+    <div className={`menu-container ${isDrawerOpen ? 'drawer-open' : ''}`}>
       {/* Main Category Navigation */}
       <div className="main-nav-tabs">
         {mainCategories.map((category) => (

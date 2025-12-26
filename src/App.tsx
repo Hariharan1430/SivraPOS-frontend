@@ -10,6 +10,7 @@ import SignIn from './components/Signin';
 import SignUp from './components/Signup';
 import Delivery from './components/delivery';
 import Report from './components/report';
+import ProductCategories from './components/addproduct';
 
 // ==================== INTERFACES ====================
 interface OrderItem {
@@ -27,6 +28,13 @@ interface MenuItem {
   image: string;
 }
 
+interface Category {
+  id: number;
+  name: string;
+  color: string;
+  initial: string;
+}
+
 function App() {
   // ==================== STATE MANAGEMENT ====================
   const [activeTab, setActiveTab] = useState('menu');
@@ -36,14 +44,20 @@ function App() {
   // 🛒 Order Management State
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   
+  // 🎯 Drawer State - Track if drawer is open
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  
+  // 📂 Product Categories State
+  const [categories, setCategories] = useState<Category[]>([]);
+  
   // 📋 Header Ref for controlling drawer
   const headerRef = useRef<HeaderRef>(null);
 
   // ==================== LOAD SESSION & RESTORE ORDER ====================
   useEffect(() => {
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    const savedTab = localStorage.getItem('activeTab');
-    const savedOrder = localStorage.getItem('currentOrder');
+    const savedAuth = sessionStorage.getItem('isAuthenticated');
+    const savedTab = sessionStorage.getItem('activeTab');
+    const savedOrder = sessionStorage.getItem('currentOrder');
 
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
@@ -55,36 +69,68 @@ function App() {
       setActiveTab(savedTab);
     }
 
-    // Restore order from localStorage if exists
+    // Restore order from sessionStorage if exists
     if (savedOrder) {
       try {
         const parsedOrder = JSON.parse(savedOrder);
         setOrderItems(parsedOrder);
       } catch (error) {
         console.error('Error parsing saved order:', error);
-        localStorage.removeItem('currentOrder');
+        sessionStorage.removeItem('currentOrder');
       }
     }
+
+    // Load categories from localStorage (managed by ProductCategories component)
+    loadCategories();
+  }, []);
+
+  // ==================== LOAD CATEGORIES ====================
+  const loadCategories = () => {
+    const savedCategories = localStorage.getItem('productCategories');
+    if (savedCategories) {
+      try {
+        const parsed = JSON.parse(savedCategories);
+        // Filter out deleted categories
+        const activeCategories = parsed.filter((cat: Category & { deleted?: boolean }) => !cat.deleted);
+        setCategories(activeCategories);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      }
+    }
+  };
+
+  // ==================== LISTEN FOR CATEGORY UPDATES ====================
+  useEffect(() => {
+    // Listen for category updates from ProductCategories component
+    const handleCategoriesUpdate = (event: CustomEvent) => {
+      loadCategories();
+    };
+
+    window.addEventListener('categoriesUpdated', handleCategoriesUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('categoriesUpdated', handleCategoriesUpdate as EventListener);
+    };
   }, []);
 
   // ==================== PERSIST AUTHENTICATION STATE ====================
   useEffect(() => {
     if (isAuthenticated !== null) {
-      localStorage.setItem('isAuthenticated', String(isAuthenticated));
+      sessionStorage.setItem('isAuthenticated', String(isAuthenticated));
     }
   }, [isAuthenticated]);
 
   // ==================== PERSIST ACTIVE TAB ====================
   useEffect(() => {
-    localStorage.setItem('activeTab', activeTab);
+    sessionStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
 
   // ==================== PERSIST ORDER ITEMS ====================
   useEffect(() => {
     if (orderItems.length > 0) {
-      localStorage.setItem('currentOrder', JSON.stringify(orderItems));
+      sessionStorage.setItem('currentOrder', JSON.stringify(orderItems));
     } else {
-      localStorage.removeItem('currentOrder');
+      sessionStorage.removeItem('currentOrder');
     }
   }, [orderItems]);
 
@@ -95,16 +141,17 @@ function App() {
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
     setAuthMode(null);
-    localStorage.setItem('isAuthenticated', 'true');
+    sessionStorage.setItem('isAuthenticated', 'true');
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setActiveTab('menu');
     setOrderItems([]);
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('currentOrder');
-    localStorage.removeItem('activeTab');
+    setIsDrawerOpen(false);
+    sessionStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('currentOrder');
+    sessionStorage.removeItem('activeTab');
   };
 
   // ==================== DRAWER HANDLERS ====================
@@ -112,6 +159,20 @@ function App() {
     if (headerRef.current) {
       headerRef.current.openDrawer();
     }
+  };
+
+  const handleDrawerStateChange = (isOpen: boolean) => {
+    setIsDrawerOpen(isOpen);
+  };
+
+  // ==================== CATEGORY HANDLERS ====================
+  const handleCategoriesUpdate = (updatedCategories: Category[]) => {
+    setCategories(updatedCategories);
+  };
+
+  // ==================== NAVIGATION HANDLER ====================
+  const handleNavigateToMenu = () => {
+    setActiveTab('product');
   };
 
   // ==================== ORDER MANAGEMENT HANDLERS ====================
@@ -215,6 +276,7 @@ function App() {
               onUpdateQuantity={handleUpdateQuantity}
               orderItems={getOrderItemsForMenu()}
               onOpenDrawer={handleOpenDrawer}
+              isDrawerOpen={isDrawerOpen}
             />
           </div>
         );
@@ -222,6 +284,15 @@ function App() {
         return (
           <div className="main-content">
             <Product />
+          </div>
+        );
+      case 'product-categories':
+        return (
+          <div className="main-content">
+            <ProductCategories 
+              onCategoriesUpdate={handleCategoriesUpdate}
+              onNavigateBack={handleNavigateToMenu}
+            />
           </div>
         );
       case 'stock':
@@ -252,6 +323,7 @@ function App() {
               onUpdateQuantity={handleUpdateQuantity}
               orderItems={getOrderItemsForMenu()}
               onOpenDrawer={handleOpenDrawer}
+              isDrawerOpen={isDrawerOpen}
             />
           </div>
         );
@@ -264,8 +336,10 @@ function App() {
       <Header 
         ref={headerRef}
         activeTab={activeTab} 
+        setActiveTab={setActiveTab}
         orderItems={orderItems}
         onUpdateOrderItems={handleUpdateOrderItems}
+        onDrawerStateChange={handleDrawerStateChange}
       />
       {renderContent()}
       <Footer activeTab={activeTab} setActiveTab={setActiveTab} />

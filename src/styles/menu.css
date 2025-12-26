@@ -15,6 +15,15 @@
   min-height: calc(100vh - 120px);
   overflow-y: auto;
   padding-bottom: 100px;
+  transition: width 0.3s ease, margin-right 0.3s ease, filter 0.3s ease;
+}
+
+/* When drawer is open - adjust menu container */
+.menu-container.drawer-open {
+  width: calc(100% - 450px - 5%);
+  margin-right: 450px;
+  filter: blur(0px);
+  pointer-events: auto;
 }
 
 .menu-content {
@@ -192,6 +201,12 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   width: 100%;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* Adjust grid when drawer is open */
+.menu-container.drawer-open .items-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 }
 
 /* ==================== ITEM CARD ==================== */
@@ -362,20 +377,46 @@
 }
 
 /* ==================== RESPONSIVE STYLES ==================== */
+
+/* Large Desktop - Drawer Open Adjustments */
+@media (min-width: 1600px) {
+  .menu-container.drawer-open .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* Standard Desktop */
 @media (max-width: 1400px) {
   .items-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
+  
+  .menu-container.drawer-open .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
 }
 
+/* Tablet and Small Desktop - Drawer opens in overlay */
 @media (max-width: 1024px) {
   .menu-container {
     padding: 16px;
   }
   
+  /* Reset drawer-open adjustments - drawer becomes overlay */
+  .menu-container.drawer-open {
+    width: 95%;
+    margin-right: auto;
+    filter: blur(0px);
+    pointer-events: auto;
+  }
+  
   .items-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
+  }
+  
+  .menu-container.drawer-open .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   }
   
   .item-image {
@@ -391,10 +432,19 @@
   }
 }
 
+/* Mobile Devices */
 @media (max-width: 768px) {
   .menu-container {
     padding: 12px;
     padding-bottom: 120px;
+  }
+
+  /* Reset drawer-open adjustments completely */
+  .menu-container.drawer-open {
+    width: 95%;
+    margin-right: auto;
+    filter: blur(0px);
+    pointer-events: auto;
   }
 
   .main-nav-tabs {
@@ -434,6 +484,10 @@
   .items-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
+  }
+  
+  .menu-container.drawer-open .items-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .item-card {
@@ -477,9 +531,17 @@
   }
 }
 
+/* Small Mobile */
 @media (max-width: 480px) {
   .menu-container {
     padding: 8px;
+  }
+
+  .menu-container.drawer-open {
+    width: 95%;
+    margin-right: auto;
+    filter: blur(0px);
+    pointer-events: auto;
   }
 
   .main-nav-tabs {
