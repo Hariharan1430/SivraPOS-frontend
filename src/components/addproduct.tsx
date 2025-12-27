@@ -3,8 +3,8 @@ import '../styles/addproduct.css';
 
 // Import your local icon images here
  import BackIcon from '../assests/left-arrow.png';
- import EditIcon from '../assests/editing.png';
- import DeleteIcon from '../assests/delete.png';
+import EditIcon from '../assests/editing.png';
+import DeleteIcon from '../assests/delete.png';
 // import SearchIcon from '../assests/search-icon.png';
 // import AddIcon from '../assests/add-icon.png';
 
@@ -26,8 +26,13 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [categoryName, setCategoryName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Color palette for category avatars
   const colors = ['#4CAF50', '#FF6B6B', '#4ECDC4', '#FFE66D', '#A8E6CF', '#FF8B94'];
@@ -82,16 +87,24 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  const showSuccessPopup = (message: string) => {
+    setSuccessMessage(message);
+    setIsSuccessPopupOpen(true);
+    setTimeout(() => {
+      setIsSuccessPopupOpen(false);
+    }, 2000);
+  };
+
   const handleAddCategory = () => {
     if (!categoryName.trim()) {
-      alert('Please enter a category name');
+      setErrorMessage('Please enter a category name');
       return;
     }
 
     // Check for duplicate names (excluding deleted categories)
     const activeCategories = categories.filter(cat => !cat.deleted);
     if (activeCategories.some(cat => cat.name.toLowerCase() === categoryName.trim().toLowerCase())) {
-      alert('A category with this name already exists');
+      setErrorMessage('A category with this name already exists');
       return;
     }
 
@@ -105,12 +118,14 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
 
     setCategories([...categories, newCategory]);
     setCategoryName('');
+    setErrorMessage('');
     setIsAddModalOpen(false);
+    showSuccessPopup(`Category "${newCategory.name}" added successfully!`);
   };
 
   const handleEditCategory = () => {
     if (!categoryName.trim() || !editingCategory) {
-      alert('Please enter a category name');
+      setErrorMessage('Please enter a category name');
       return;
     }
 
@@ -120,7 +135,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
       cat.id !== editingCategory.id && 
       cat.name.toLowerCase() === categoryName.trim().toLowerCase()
     )) {
-      alert('A category with this name already exists');
+      setErrorMessage('A category with this name already exists');
       return;
     }
 
@@ -132,26 +147,41 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
 
     setCategories(updatedCategories);
     setCategoryName('');
+    setErrorMessage('');
     setEditingCategory(null);
     setIsEditModalOpen(false);
+    showSuccessPopup(`Category updated successfully!`);
   };
 
-  const handleDeleteCategory = (id: number) => {
-    const categoryToDelete = categories.find(cat => cat.id === id);
-    if (!categoryToDelete) return;
+  const openDeleteConfirm = (category: Category) => {
+    setDeletingCategory(category);
+    setIsDeleteConfirmOpen(true);
+  };
 
-    if (window.confirm(`Are you sure you want to delete "${categoryToDelete.name}"? It will be restored on refresh.`)) {
-      // Soft delete - just mark as deleted
-      const updatedCategories = categories.map(cat =>
-        cat.id === id ? { ...cat, deleted: true } : cat
-      );
-      setCategories(updatedCategories);
-    }
+  const handleConfirmDelete = () => {
+    if (!deletingCategory) return;
+
+    // Soft delete - just mark as deleted
+    const updatedCategories = categories.map(cat =>
+      cat.id === deletingCategory.id ? { ...cat, deleted: true } : cat
+    );
+    setCategories(updatedCategories);
+    
+    const categoryName = deletingCategory.name;
+    setIsDeleteConfirmOpen(false);
+    setDeletingCategory(null);
+    showSuccessPopup(`Category "${categoryName}" deleted successfully!`);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteConfirmOpen(false);
+    setDeletingCategory(null);
   };
 
   const openEditModal = (category: Category) => {
     setEditingCategory(category);
     setCategoryName(category.name);
+    setErrorMessage('');
     setIsEditModalOpen(true);
   };
 
@@ -160,19 +190,18 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
     setIsEditModalOpen(false);
     setCategoryName('');
     setEditingCategory(null);
+    setErrorMessage('');
   };
 
   const handleBackClick = () => {
-    // If parent provides navigation handler, 
+    // If parent provides navigation handler, use it
     if (onNavigateBack) {
       onNavigateBack();
     } else {
       // Otherwise try to go back in history
-      // Check if there's history to go back to
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        // If no history, try to navigate to home or menu
         window.location.href = '/menu';
       }
     }
@@ -188,9 +217,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
       {/* Header */}
       <div className="addproduct-header">
         <button className="addproduct-back-btn" onClick={handleBackClick}>
-          {/* Replace SVG with image when you have the icon */}
-          <img src={BackIcon} alt="Back" className="addproduct-icon" />
-         
+          <img src={BackIcon} alt="Edit" className="addproduct-icon-small" /> 
         </button>
         <h1 className="addproduct-title">Product Categories</h1>
       </div>
@@ -206,8 +233,6 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button className="addproduct-search-icon-btn">
-            {/* Replace SVG with image when you have the icon */}
-            {/* <img src={SearchIcon} alt="Search" className="addproduct-icon-small" /> */}
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M9.16667 15.8333C12.8486 15.8333 15.8333 12.8486 15.8333 9.16667C15.8333 5.48477 12.8486 2.5 9.16667 2.5C5.48477 2.5 2.5 5.48477 2.5 9.16667C2.5 12.8486 5.48477 15.8333 9.16667 15.8333Z" stroke="#4F567B" strokeWidth="1.4"/>
               <path d="M17.5 17.5L13.875 13.875" stroke="#4F567B" strokeWidth="1.4" strokeLinecap="round"/>
@@ -215,8 +240,6 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
           </button>
         </div>
         <button className="addproduct-add-btn" onClick={() => setIsAddModalOpen(true)}>
-          {/* Replace SVG with image when you have the icon */}
-          {/* <img src={AddIcon} alt="Add" className="addproduct-icon-small" /> */}
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M10 4V16M4 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
@@ -250,18 +273,14 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
                   onClick={() => openEditModal(category)}
                   aria-label="Edit category"
                 >
-                  {/* Replace SVG with image when you have the icon */}
-                   <img src={EditIcon} alt="Edit" className="addproduct-icon-small" /> 
-                  
+                  <img src={EditIcon} alt="Edit" className="addproduct-icon-small" /> 
                 </button>
                 <button
                   className="addproduct-delete-btn"
-                  onClick={() => handleDeleteCategory(category.id)}
+                  onClick={() => openDeleteConfirm(category)}
                   aria-label="Delete category"
                 >
-                  {/* Replace SVG with image when you have the icon */}
-                   <img src={DeleteIcon} alt="Delete" className="addproduct-icon-small" /> 
-                  
+                 <img src={DeleteIcon} alt="Edit" className="addproduct-icon-small" /> 
                 </button>
               </div>
             </div>
@@ -290,6 +309,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
                 onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                 autoFocus
               />
+              {errorMessage && <p className="addproduct-error-message">{errorMessage}</p>}
             </div>
             <button className="addproduct-modal-submit-btn" onClick={handleAddCategory}>
               Add Category
@@ -319,10 +339,49 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
                 onKeyPress={(e) => e.key === 'Enter' && handleEditCategory()}
                 autoFocus
               />
+              {errorMessage && <p className="addproduct-error-message">{errorMessage}</p>}
             </div>
             <button className="addproduct-modal-submit-btn" onClick={handleEditCategory}>
               Update
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {isDeleteConfirmOpen && deletingCategory && (
+        <div className="addproduct-confirm-overlay">
+          <div className="addproduct-confirm-dialog">
+            <h2 className="addproduct-confirm-title">Sivra POS</h2>
+            <p className="addproduct-confirm-message">
+              Are you sure you want to delete "{deletingCategory.name}"?
+            </p>
+            <div className="addproduct-confirm-actions">
+              <button 
+                className="addproduct-confirm-btn addproduct-confirm-cancel"
+                onClick={handleCancelDelete}
+              >
+                CANCEL
+              </button>
+              <button 
+                className="addproduct-confirm-btn addproduct-confirm-ok"
+                onClick={handleConfirmDelete}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Popup */}
+      {isSuccessPopupOpen && (
+        <div className="addproduct-success-popup">
+          <div className="addproduct-success-content">
+            <svg className="addproduct-success-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="addproduct-success-message">{successMessage}</span>
           </div>
         </div>
       )}

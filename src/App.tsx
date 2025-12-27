@@ -11,6 +11,7 @@ import SignUp from './components/Signup';
 import Delivery from './components/delivery';
 import Report from './components/report';
 import ProductCategories from './components/addproduct';
+import ReceiptBill from './components/Receipt';
 
 // ==================== INTERFACES ====================
 interface OrderItem {
@@ -35,6 +36,37 @@ interface Category {
   initial: string;
 }
 
+interface ReceiptData {
+  orderId: string;
+  orderItems: OrderItem[];
+  orderType: string;
+  phoneNumber: string;
+  tableNumber: string;
+  paymentMethod: string;
+  subtotal: number;
+  discount: number;
+  cgst: number;
+  sgst: number;
+  total: number;
+  buyerCashAmount: string;
+  change: number;
+  timestamp: string;
+  companyDetails: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    gstin: string;
+    taxEnabled: string;
+    cgstRate: string;
+    sgstRate: string;
+    receiptFooterMessage: string;
+  };
+}
+
 function App() {
   // ==================== STATE MANAGEMENT ====================
   const [activeTab, setActiveTab] = useState('menu');
@@ -49,6 +81,9 @@ function App() {
   
   // 📂 Product Categories State
   const [categories, setCategories] = useState<Category[]>([]);
+  
+  // 🧾 Receipt State
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   
   // 📋 Header Ref for controlling drawer
   const headerRef = useRef<HeaderRef>(null);
@@ -83,6 +118,21 @@ function App() {
     // Load categories from localStorage (managed by ProductCategories component)
     loadCategories();
   }, []);
+
+  // ==================== CHECK FOR PENDING RECEIPT ====================
+  useEffect(() => {
+    const pendingReceipt = sessionStorage.getItem('pendingReceipt');
+    if (pendingReceipt && activeTab === 'receipt') {
+      try {
+        const parsed = JSON.parse(pendingReceipt);
+        setReceiptData(parsed);
+      } catch (error) {
+        console.error('Error parsing receipt data:', error);
+        sessionStorage.removeItem('pendingReceipt');
+        setActiveTab('menu');
+      }
+    }
+  }, [activeTab]);
 
   // ==================== LOAD CATEGORIES ====================
   const loadCategories = () => {
@@ -149,9 +199,11 @@ function App() {
     setActiveTab('menu');
     setOrderItems([]);
     setIsDrawerOpen(false);
+    setReceiptData(null);
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('currentOrder');
     sessionStorage.removeItem('activeTab');
+    sessionStorage.removeItem('pendingReceipt');
   };
 
   // ==================== DRAWER HANDLERS ====================
@@ -173,6 +225,20 @@ function App() {
   // ==================== NAVIGATION HANDLER ====================
   const handleNavigateToMenu = () => {
     setActiveTab('product');
+  };
+
+  // ==================== RECEIPT HANDLERS ====================
+  const handleCloseReceipt = () => {
+    // Clear receipt data
+    setReceiptData(null);
+    sessionStorage.removeItem('pendingReceipt');
+    
+    // Clear order
+    setOrderItems([]);
+    sessionStorage.removeItem('currentOrder');
+    
+    // Return to menu
+    setActiveTab('menu');
   };
 
   // ==================== ORDER MANAGEMENT HANDLERS ====================
@@ -268,6 +334,20 @@ function App() {
   // ==================== MAIN CONTENT RENDERER ====================
   const renderContent = () => {
     switch (activeTab) {
+      case 'receipt':
+        return receiptData ? (
+          <ReceiptBill 
+            receiptData={receiptData} 
+            onClose={handleCloseReceipt} 
+          />
+        ) : (
+          <div className="main-content">
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <p>Loading receipt...</p>
+            </div>
+          </div>
+        );
       case 'menu':
         return (
           <div className="main-content">
@@ -332,17 +412,21 @@ function App() {
 
   // ==================== MAIN APP LAYOUT ====================
   return (
-    <div className="app-container">
-      <Header 
-        ref={headerRef}
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab}
-        orderItems={orderItems}
-        onUpdateOrderItems={handleUpdateOrderItems}
-        onDrawerStateChange={handleDrawerStateChange}
-      />
+    <div className={`app-container ${activeTab === 'receipt' ? 'receipt-view' : ''}`}>
+      {activeTab !== 'receipt' && (
+        <Header 
+          ref={headerRef}
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          orderItems={orderItems}
+          onUpdateOrderItems={handleUpdateOrderItems}
+          onDrawerStateChange={handleDrawerStateChange}
+        />
+      )}
       {renderContent()}
-      <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
+      {activeTab !== 'receipt' && (
+        <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
+      )}
     </div>
   );
 }

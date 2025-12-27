@@ -27,7 +27,7 @@
   height: 40px;
   min-width: 40px;
   border: none;
-  background: #f3f4f6;
+  background: white;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
@@ -117,7 +117,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 50px;
+  padding: 12px 24px;
   background: #3b82f6;
   color: white;
   border: none;
@@ -145,7 +145,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  
 }
 
 .addproduct-item {
@@ -366,6 +365,13 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+.addproduct-error-message {
+  color: #ef4444;
+  font-size: 13px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
 .addproduct-modal-submit-btn {
   width: 100%;
   padding: 14px;
@@ -387,6 +393,134 @@
 
 .addproduct-modal-submit-btn:active {
   transform: translateY(0);
+}
+
+/* ==================== DELETE CONFIRMATION DIALOG ==================== */
+
+.addproduct-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  animation: addproductFadeIn 0.2s ease-out;
+}
+
+.addproduct-confirm-dialog {
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  animation: addproductSlideUp 0.3s ease-out;
+}
+
+.addproduct-confirm-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.addproduct-confirm-message {
+  font-size: 15px;
+  color: #374151;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.addproduct-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.addproduct-confirm-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.addproduct-confirm-cancel {
+  background: transparent;
+  color: #059669;
+}
+
+.addproduct-confirm-cancel:hover {
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.addproduct-confirm-ok {
+  background: transparent;
+  color: #059669;
+}
+
+.addproduct-confirm-ok:hover {
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.addproduct-confirm-btn:active {
+  transform: scale(0.95);
+}
+
+/* ==================== SUCCESS POPUP ==================== */
+
+.addproduct-success-popup {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  animation: addproductSlideDown 0.3s ease-out;
+}
+
+@keyframes addproductSlideDown {
+  from {
+    transform: translateX(-50%) translateY(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.addproduct-success-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #10b981;
+  color: white;
+  padding: 14px 24px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  min-width: 300px;
+}
+
+.addproduct-success-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.addproduct-success-message {
+  font-size: 15px;
+  font-weight: 500;
 }
 
 /* ==================== RESPONSIVE DESIGN ==================== */
@@ -414,6 +548,10 @@
 
   .addproduct-title {
     font-size: 26px;
+  }
+
+  .addproduct-confirm-dialog {
+    max-width: 380px;
   }
 }
 
@@ -459,6 +597,14 @@
 
   .addproduct-modal-content {
     margin: 0 16px;
+  }
+
+  .addproduct-confirm-dialog {
+    max-width: 360px;
+  }
+
+  .addproduct-success-content {
+    min-width: 280px;
   }
 }
 
@@ -566,6 +712,33 @@
   .addproduct-empty-subtitle {
     font-size: 13px;
   }
+
+  .addproduct-confirm-dialog {
+    max-width: 340px;
+    padding: 20px;
+  }
+
+  .addproduct-confirm-title {
+    font-size: 18px;
+  }
+
+  .addproduct-confirm-message {
+    font-size: 14px;
+  }
+
+  .addproduct-confirm-btn {
+    padding: 8px 20px;
+    font-size: 13px;
+  }
+
+  .addproduct-success-content {
+    min-width: 260px;
+    padding: 12px 20px;
+  }
+
+  .addproduct-success-message {
+    font-size: 14px;
+  }
 }
 
 /* Mobile Small (361px - 480px) */
@@ -622,6 +795,20 @@
   .addproduct-delete-btn svg {
     width: 16px;
     height: 16px;
+  }
+
+  .addproduct-confirm-dialog {
+    max-width: 320px;
+    padding: 18px;
+  }
+
+  .addproduct-confirm-actions {
+    gap: 8px;
+  }
+
+  .addproduct-success-content {
+    min-width: 240px;
+    padding: 10px 16px;
   }
 }
 
@@ -748,5 +935,44 @@
 
   .addproduct-empty-subtitle {
     font-size: 12px;
+  }
+
+  .addproduct-confirm-dialog {
+    max-width: 300px;
+    padding: 16px;
+  }
+
+  .addproduct-confirm-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .addproduct-confirm-message {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .addproduct-confirm-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  .addproduct-success-popup {
+    top: 10px;
+  }
+
+  .addproduct-success-content {
+    min-width: 220px;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .addproduct-success-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .addproduct-success-message {
+    font-size: 13px;
   }
 }

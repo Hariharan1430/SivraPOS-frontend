@@ -19,7 +19,7 @@
 /* ---------- Layout Container ---------- */
 .profile_container {
   width: 95%;
-    display: flex;
+  display: flex;
   min-height: 70vh;
   background: #f5f6fa;
   margin-top: 2%;
@@ -38,7 +38,6 @@
   position: relative;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  
 }
 
 /* ---------- Avatar Centered (Sidebar) ---------- */
@@ -153,6 +152,7 @@
   margin-top: 10px;
 }
 
+
 /* ---------- User Avatar Section (in User Details Tab) ---------- */
 .profile_user_avatar_section {
   display: flex;
@@ -236,6 +236,11 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.profile_select {
+  background-color: white;
+  cursor: pointer;
 }
 
 .profile_textarea {

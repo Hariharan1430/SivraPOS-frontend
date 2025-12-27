@@ -23,9 +23,6 @@ export interface HeaderRef {
   openDrawer: () => void;
 }
 
-// ==================== CONSTANTS ====================
-const TAX_RATE = 0.1; // 10% tax
-
 // ==================== COMPONENT ====================
 const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, orderItems, onUpdateOrderItems, onDrawerStateChange }, ref) => {
   // State Management
@@ -33,6 +30,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
   const [selectedOrderType, setSelectedOrderType] = useState<string>('dine-in');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [phoneError, setPhoneError] = useState<string>('');
   const [tableNumber, setTableNumber] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [buyerCashAmount, setBuyerCashAmount] = useState<string>('');
@@ -44,6 +42,57 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
   };
 
   const [orderId, setOrderId] = useState(generateOrderId());
+
+  // Load company tax settings
+  const getCompanyTaxSettings = () => {
+    const taxEnabled = localStorage.getItem('companyTaxEnabled') || 'disabled';
+    const cgstRate = parseFloat(localStorage.getItem('companyCgstRate') || '3') / 100;
+    const sgstRate = parseFloat(localStorage.getItem('companySgstRate') || '3') / 100;
+    
+    return { taxEnabled, cgstRate, sgstRate };
+  };
+
+  // Phone Number Validation
+  const validatePhoneNumber = (phone: string): boolean => {
+    // Remove all non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Check if it's empty
+    if (cleaned.length === 0) {
+      setPhoneError('Phone number is required for take-away orders');
+      return false;
+    }
+    
+    // Check if it's a valid length (10 digits for most countries, can be adjusted)
+    if (cleaned.length < 10) {
+      setPhoneError('Phone number must be at least 10 digits');
+      return false;
+    }
+    
+    if (cleaned.length > 15) {
+      setPhoneError('Phone number must be less than 15 digits');
+      return false;
+    }
+    
+    // Check if it contains only digits
+    if (!/^\d+$/.test(cleaned)) {
+      setPhoneError('Phone number must contain only digits');
+      return false;
+    }
+    
+    setPhoneError('');
+    return true;
+  };
+
+  // Handle phone number change
+  const handlePhoneNumberChange = (value: string) => {
+    setPhoneNumber(value);
+    if (value.trim() !== '') {
+      validatePhoneNumber(value);
+    } else {
+      setPhoneError('');
+    }
+  };
 
   // Expose openDrawer method to parent component
   useImperativeHandle(ref, () => ({
@@ -86,9 +135,14 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       alert('Please enter table number for dine-in orders');
       return;
     }
-    if (selectedOrderType === 'take-away' && !phoneNumber.trim()) {
-      alert('Please enter customer phone number for take-away orders');
-      return;
+    if (selectedOrderType === 'take-away') {
+      if (!phoneNumber.trim()) {
+        setPhoneError('Phone number is required for take-away orders');
+        return;
+      }
+      if (!validatePhoneNumber(phoneNumber)) {
+        return;
+      }
     }
     setIsPaymentModalOpen(true);
     closeDrawer();
@@ -130,6 +184,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
     // Clear current order and reset form
     onUpdateOrderItems([]);
     setPhoneNumber('');
+    setPhoneError('');
     setTableNumber('');
     setSelectedOrderType('dine-in');
     setDiscount('0');
@@ -149,9 +204,14 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       return;
     }
     
-    if (selectedOrderType === 'take-away' && !phoneNumber.trim()) {
-      alert('Please enter customer phone number before holding order');
-      return;
+    if (selectedOrderType === 'take-away') {
+      if (!phoneNumber.trim()) {
+        setPhoneError('Phone number is required for take-away orders');
+        return;
+      }
+      if (!validatePhoneNumber(phoneNumber)) {
+        return;
+      }
     }
 
     // Save to held orders
@@ -183,7 +243,27 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       }
     }
 
-    const completedOrder = {
+    const taxSettings = getCompanyTaxSettings();
+    const cgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.cgstRate : 0;
+    const sgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.sgstRate : 0;
+    
+    // Get company details from localStorage
+    const companyDetails = {
+      name: localStorage.getItem('companyName') || '',
+      email: localStorage.getItem('companyEmail') || '',
+      phone: localStorage.getItem('companyPhone') || '',
+      address: localStorage.getItem('companyAddress') || '',
+      city: localStorage.getItem('companyCity') || '',
+      state: localStorage.getItem('companyState') || '',
+      zipCode: localStorage.getItem('companyZipCode') || '',
+      gstin: localStorage.getItem('companyGstin') || '',
+      taxEnabled: taxSettings.taxEnabled,
+      cgstRate: localStorage.getItem('companyCgstRate') || '3',
+      sgstRate: localStorage.getItem('companySgstRate') || '3',
+      receiptFooterMessage: localStorage.getItem('companyReceiptFooterMessage') || '',
+    };
+
+    const receiptData = {
       orderId,
       orderItems,
       orderType: selectedOrderType,
@@ -192,28 +272,39 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       paymentMethod,
       subtotal,
       discount: discountAmount,
-      tax: taxAmount,
+      cgst,
+      sgst,
       total,
       buyerCashAmount: paymentMethod === 'cash' ? buyerCashAmount : '0',
       change: paymentMethod === 'cash' ? change : 0,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      companyDetails
     };
+
+    // Save to sessionStorage to pass to receipt page
+    sessionStorage.setItem('pendingReceipt', JSON.stringify(receiptData));
     
-    console.log('Order completed:', completedOrder);
+    // Navigate to receipt page
+    if (setActiveTab) {
+      setActiveTab('receipt');
+    }
     
     // Clear the order and close modals
     handleNewOrder();
     closePaymentModal();
     closeDrawer();
-    
-    alert(`Order ${orderId} completed successfully!`);
   };
 
   // ==================== CALCULATIONS ====================
   const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = (subtotal * parseFloat(discount || '0')) / 100;
-  const taxAmount = subtotal * TAX_RATE;
-  const total = subtotal - discountAmount + taxAmount;
+  const subtotalAfterDiscount = subtotal - discountAmount;
+  
+  const taxSettings = getCompanyTaxSettings();
+  const cgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.cgstRate : 0;
+  const sgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.sgstRate : 0;
+  const taxAmount = cgst + sgst;
+  const total = subtotalAfterDiscount + taxAmount;
   const change = parseFloat(buyerCashAmount || '0') - total;
 
   // ==================== RENDER ====================
@@ -345,7 +436,10 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
                     name="orderType"
                     value="dine-in"
                     checked={selectedOrderType === 'dine-in'}
-                    onChange={e => setSelectedOrderType(e.target.value)}
+                    onChange={e => {
+                      setSelectedOrderType(e.target.value);
+                      setPhoneError('');
+                    }}
                   />
                   <span className="radio-custom"></span>
                   <span className="radio-label">Dine In</span>
@@ -367,18 +461,28 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
             {/* Order Information */}
             <div className="order-info">
               <div className="info-field">
-                <label className="info-label">Customer Phone No.</label>
+                <label className="info-label">
+                  Customer Phone No. {selectedOrderType === 'take-away' && <span style={{ color: 'red' }}>*</span>}
+                </label>
                 <input
                   type="tel"
                   value={phoneNumber}
-                  onChange={e => setPhoneNumber(e.target.value)}
-                  className="info-input"
+                  onChange={e => handlePhoneNumberChange(e.target.value)}
+                  onBlur={() => {
+                    if (selectedOrderType === 'take-away' && phoneNumber.trim()) {
+                      validatePhoneNumber(phoneNumber);
+                    }
+                  }}
+                  className={`info-input ${phoneError ? 'input-error' : ''}`}
                   placeholder="Enter phone number"
                   required={selectedOrderType === 'take-away'}
                 />
+                {phoneError && <span className="error-message">{phoneError}</span>}
               </div>
               <div className="info-field">
-                <label className="info-label">Table</label>
+                <label className="info-label">
+                  Table {selectedOrderType === 'dine-in' && <span style={{ color: 'red' }}>*</span>}
+                </label>
                 <input
                   type="text"
                   value={tableNumber}
@@ -416,9 +520,9 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
                         <div className="item-details">
                           <h4 className="item-name">{item.name}</h4>
                           <div className="item-price-calc">
-                            <span className="item-unit-price">{item.price.toFixed(2)}</span>
+                            <span className="item-unit-price">₹{item.price.toFixed(2)}</span>
                             <span className="multiply">×</span>
-                            <span className="item-total-price">{(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="item-total-price">₹{(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         </div>
                         <div className="quantity-controls">
@@ -488,19 +592,27 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
             <div className="payment-summary">
               <div className="summary-row">
                 <span className="summary-label">Subtotal</span>
-                <span className="summary-value">{subtotal.toFixed(2)}</span>
+                <span className="summary-value">₹{subtotal.toFixed(2)}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">Discount ({discount}%)</span>
-                <span className="summary-value">-{discountAmount.toFixed(2)}</span>
+                <span className="summary-value">-₹{discountAmount.toFixed(2)}</span>
               </div>
-              <div className="summary-row">
-                <span className="summary-label">10% tax</span>
-                <span className="summary-value">{taxAmount.toFixed(2)}</span>
-              </div>
+              {taxSettings.taxEnabled === 'enabled' && (
+                <>
+                  <div className="summary-row">
+                    <span className="summary-label">CGST ({(taxSettings.cgstRate * 100).toFixed(2)}%)</span>
+                    <span className="summary-value">₹{cgst.toFixed(2)}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span className="summary-label">SGST ({(taxSettings.sgstRate * 100).toFixed(2)}%)</span>
+                    <span className="summary-value">₹{sgst.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="summary-row total-row">
                 <span className="summary-label">Total</span>
-                <span className="summary-value total-value">{total.toFixed(2)}</span>
+                <span className="summary-value total-value">₹{total.toFixed(2)}</span>
               </div>
             </div>
 
