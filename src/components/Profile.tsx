@@ -18,7 +18,6 @@ interface UserDetails {
 const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
   const [activeTab, setActiveTab] = useState('company');
   
-  // User details state
   const [userDetails, setUserDetails] = useState<UserDetails>({
     firstName: 'Xoana',
     lastName: 'Herera',
@@ -29,7 +28,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop'
   });
 
-  // Company details state
   const [companyDetails, setCompanyDetails] = useState({
     name: '',
     email: '',
@@ -38,14 +36,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     city: '',
     state: '',
     zipCode: '',
-    gstin: '',
-    taxEnabled: 'disabled',
-    cgstRate: '3',
-    sgstRate: '3',
+    taxId: '',
+    salesTaxRate: '0',
     receiptFooterMessage: ''
   });
 
-  // Temporary state for user details form
   const [tempUserDetails, setTempUserDetails] = useState({
     firstName: userDetails.firstName,
     lastName: userDetails.lastName,
@@ -53,7 +48,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     email: userDetails.email
   });
 
-  // Load company details from localStorage on mount
   useEffect(() => {
     const savedCompanyName = localStorage.getItem('companyName') || '';
     const savedCompanyEmail = localStorage.getItem('companyEmail') || '';
@@ -62,10 +56,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     const savedCompanyCity = localStorage.getItem('companyCity') || '';
     const savedCompanyState = localStorage.getItem('companyState') || '';
     const savedCompanyZipCode = localStorage.getItem('companyZipCode') || '';
-    const savedCompanyGstin = localStorage.getItem('companyGstin') || '';
-    const savedTaxEnabled = localStorage.getItem('companyTaxEnabled') || 'disabled';
-    const savedCgstRate = localStorage.getItem('companyCgstRate') || '3';
-    const savedSgstRate = localStorage.getItem('companySgstRate') || '3';
+    const savedCompanyTaxId = localStorage.getItem('companyTaxId') || '';
+    const savedSalesTaxRate = localStorage.getItem('companySalesTaxRate') || '0';
     const savedReceiptFooterMessage = localStorage.getItem('companyReceiptFooterMessage') || '';
 
     setCompanyDetails({
@@ -76,15 +68,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
       city: savedCompanyCity,
       state: savedCompanyState,
       zipCode: savedCompanyZipCode,
-      gstin: savedCompanyGstin,
-      taxEnabled: savedTaxEnabled,
-      cgstRate: savedCgstRate,
-      sgstRate: savedSgstRate,
+      taxId: savedCompanyTaxId,
+      salesTaxRate: savedSalesTaxRate,
       receiptFooterMessage: savedReceiptFooterMessage
     });
   }, []);
 
-  // Handle avatar upload
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -120,7 +109,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
   };
 
   const handleUserDetailsSave = () => {
-    // Update the main user details with temporary form values
     setUserDetails(prev => ({
       ...prev,
       firstName: tempUserDetails.firstName,
@@ -133,7 +121,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
   };
 
   const handleCompanyDetailsSave = () => {
-    // Save to localStorage for use in receipts
+    // Validate sales tax rate
+    const taxRate = parseFloat(companyDetails.salesTaxRate);
+    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+      alert('Please enter a valid sales tax rate between 0 and 100');
+      return;
+    }
+
     localStorage.setItem('companyName', companyDetails.name);
     localStorage.setItem('companyEmail', companyDetails.email);
     localStorage.setItem('companyPhone', companyDetails.phone);
@@ -141,21 +135,30 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
     localStorage.setItem('companyCity', companyDetails.city);
     localStorage.setItem('companyState', companyDetails.state);
     localStorage.setItem('companyZipCode', companyDetails.zipCode);
-    localStorage.setItem('companyGstin', companyDetails.gstin);
-    localStorage.setItem('companyTaxEnabled', companyDetails.taxEnabled);
-    localStorage.setItem('companyCgstRate', companyDetails.cgstRate);
-    localStorage.setItem('companySgstRate', companyDetails.sgstRate);
+    localStorage.setItem('companyTaxId', companyDetails.taxId);
+    localStorage.setItem('companySalesTaxRate', companyDetails.salesTaxRate);
     localStorage.setItem('companyReceiptFooterMessage', companyDetails.receiptFooterMessage);
     
     alert('Company details saved successfully!');
   };
 
+  // US States list for dropdown
+  const usStates = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 
+    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 
+    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 
+    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 
+    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 
+    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 
+    'Wisconsin', 'Wyoming'
+  ];
+
   const renderCompanyDetails = () => (
     <div className="profile_content">
-      {/* Company Name - Full Width */}
       <div className="profile_form_row">
         <div className="profile_form_group">
-          <label className="profile_form_label">Company Name</label>
+          <label className="profile_form_label">Company Name *</label>
           <input 
             type="text" 
             placeholder="Enter company name" 
@@ -166,10 +169,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* Email and Phone - Side by Side */}
       <div className="profile_form_row profile_form_row_split">
         <div className="profile_form_group">
-          <label className="profile_form_label">Email</label>
+          <label className="profile_form_label">Email *</label>
           <input 
             type="email" 
             placeholder="Enter company email" 
@@ -179,10 +181,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           />
         </div>
         <div className="profile_form_group">
-          <label className="profile_form_label">Phone Number</label>
+          <label className="profile_form_label">Phone Number *</label>
           <input 
             type="text" 
-            placeholder="Enter phone number" 
+            placeholder="(555) 123-4567" 
             className="profile_input"
             value={companyDetails.phone}
             onChange={(e) => handleCompanyDetailsChange('phone', e.target.value)}
@@ -190,20 +192,22 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* Address and City - Side by Side */}
-      <div className="profile_form_row profile_form_row_split">
+      <div className="profile_form_row">
         <div className="profile_form_group">
-          <label className="profile_form_label">Address</label>
+          <label className="profile_form_label">Street Address *</label>
           <input 
             type="text" 
-            placeholder="Enter address" 
+            placeholder="Enter street address" 
             className="profile_input"
             value={companyDetails.address}
             onChange={(e) => handleCompanyDetailsChange('address', e.target.value)}
           />
         </div>
+      </div>
+
+      <div className="profile_form_row profile_form_row_split">
         <div className="profile_form_group">
-          <label className="profile_form_label">City</label>
+          <label className="profile_form_label">City *</label>
           <input 
             type="text" 
             placeholder="Enter city" 
@@ -212,86 +216,98 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
             onChange={(e) => handleCompanyDetailsChange('city', e.target.value)}
           />
         </div>
-      </div>
-
-      {/* State and Zip Code - Side by Side */}
-      <div className="profile_form_row profile_form_row_split">
         <div className="profile_form_group">
-          <label className="profile_form_label">State</label>
-          <input 
-            type="text" 
-            placeholder="Enter state" 
-            className="profile_input"
-            value={companyDetails.state}
-            onChange={(e) => handleCompanyDetailsChange('state', e.target.value)}
-          />
-        </div>
-        <div className="profile_form_group">
-          <label className="profile_form_label">Zip Code</label>
-          <input 
-            type="text" 
-            placeholder="Enter zip code" 
-            className="profile_input"
-            value={companyDetails.zipCode}
-            onChange={(e) => handleCompanyDetailsChange('zipCode', e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Tax Enable/Disable */}
-      <div className="profile_form_row">
-        <div className="profile_form_group">
-          <label className="profile_form_label">Tax Configuration</label>
+          <label className="profile_form_label">State *</label>
           <select
             className="profile_input profile_select"
-            value={companyDetails.taxEnabled}
-            onChange={(e) => handleCompanyDetailsChange('taxEnabled', e.target.value)}
+            value={companyDetails.state}
+            onChange={(e) => handleCompanyDetailsChange('state', e.target.value)}
           >
-            <option value="disabled">Tax Disabled</option>
-            <option value="enabled">Tax Enabled</option>
+            <option value="">Select State</option>
+            {usStates.map(state => (
+              <option key={state} value={state}>{state}</option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Tax Rates - Show only if enabled */}
-      {companyDetails.taxEnabled === 'enabled' && (
-        <div className="profile_form_row profile_form_row_split">
-          <div className="profile_form_group">
-            <label className="profile_form_label">CGST Rate (%)</label>
-            <input 
-              type="number" 
-              placeholder="Enter CGST rate" 
-              min="0"
-              max="100"
-              step="0.01"
-              className="profile_input"
-              value={companyDetails.cgstRate}
-              onChange={(e) => handleCompanyDetailsChange('cgstRate', e.target.value)}
-            />
-          </div>
-          <div className="profile_form_group">
-            <label className="profile_form_label">SGST Rate (%)</label>
-            <input 
-              type="number" 
-              placeholder="Enter SGST rate" 
-              min="0"
-              max="100"
-              step="0.01"
-              className="profile_input"
-              value={companyDetails.sgstRate}
-              onChange={(e) => handleCompanyDetailsChange('sgstRate', e.target.value)}
-            />
+      <div className="profile_form_row profile_form_row_split">
+        <div className="profile_form_group">
+          <label className="profile_form_label">ZIP Code *</label>
+          <input 
+            type="text" 
+            placeholder="12345" 
+            className="profile_input"
+            value={companyDetails.zipCode}
+            onChange={(e) => handleCompanyDetailsChange('zipCode', e.target.value)}
+            maxLength={10}
+          />
+        </div>
+        <div className="profile_form_group">
+          <label className="profile_form_label">Federal Tax ID (EIN)</label>
+          <input 
+            type="text" 
+            placeholder="12-3456789" 
+            className="profile_input"
+            value={companyDetails.taxId}
+            onChange={(e) => handleCompanyDetailsChange('taxId', e.target.value)}
+            maxLength={10}
+          />
+          <small style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+            Format: XX-XXXXXXX (9 digits)
+          </small>
+        </div>
+      </div>
+
+      <div className="profile_section_divider"></div>
+      <h3 className="profile_section_title">Sales Tax Configuration</h3>
+      
+      <div className="profile_form_row">
+        <div className="profile_form_group">
+          <label className="profile_form_label">Sales Tax Rate (%) *</label>
+          <input 
+            type="number" 
+            placeholder="Enter sales tax rate (e.g., 7.5)" 
+            min="0"
+            max="100"
+            step="0.01"
+            className="profile_input"
+            value={companyDetails.salesTaxRate}
+            onChange={(e) => handleCompanyDetailsChange('salesTaxRate', e.target.value)}
+          />
+          <small style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+            Enter the combined state + local sales tax rate for your location
+          </small>
+        </div>
+      </div>
+
+      <div className="profile_form_row" style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', alignItems: 'start', gap: '12px' }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0, marginTop: '2px' }}>
+            <circle cx="10" cy="10" r="9" stroke="#3b82f6" strokeWidth="1.5"/>
+            <path d="M10 6v4M10 14h.01" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+          <div>
+            <p style={{ fontSize: '13px', color: '#374151', fontWeight: '500', marginBottom: '6px' }}>
+              About Sales Tax in the USA
+            </p>
+            <p style={{ fontSize: '12px', color: '#6b7280', lineHeight: '1.5' }}>
+              Sales tax rates vary by state and locality. Make sure to enter the correct combined rate for your business location. 
+              Some states have no sales tax (e.g., Oregon, Delaware), while others range from 2.9% to 11.5% when including local taxes.
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Receipt Footer Message */}
+      <div className="profile_section_divider"></div>
+      <h3 className="profile_section_title">Receipt Settings</h3>
+
       <div className="profile_form_row">
         <div className="profile_form_group">
           <label className="profile_form_label">Receipt Footer Message</label>
           <input 
             type="text" 
-            placeholder="Thank You, Please Visit Again" 
+            placeholder="Thank You For Your Business!" 
             className="profile_input"
             value={companyDetails.receiptFooterMessage}
             onChange={(e) => handleCompanyDetailsChange('receiptFooterMessage', e.target.value)}
@@ -299,24 +315,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* GSTIN */}
-      <div className="profile_form_row">
-        <div className="profile_form_group">
-          <label className="profile_form_label">GSTIN (GST Identification Number)</label>
-          <input 
-            type="text" 
-            placeholder="Enter GSTIN (e.g., 22AAAAA0000A1Z5)" 
-            className="profile_input"
-            value={companyDetails.gstin}
-            onChange={(e) => handleCompanyDetailsChange('gstin', e.target.value.toUpperCase())}
-            maxLength={15}
-          />
-        </div>
-      </div>
-
       <div className="profile_actions">
         <button className="profile_save_btn_blue" onClick={handleCompanyDetailsSave}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
             <polyline points="17 21 17 13 7 13 7 21"/>
             <polyline points="7 3 7 8 15 8"/>
@@ -337,7 +338,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
             className="profile_user_avatar"
           />
           <label htmlFor="avatar-upload" className="profile_camera_icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
               <circle cx="12" cy="13" r="4"/>
             </svg>
@@ -357,7 +358,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           <label className="profile_form_label">First Name</label>
           <input 
             type="text" 
-            placeholder="Ram" 
+            placeholder="John" 
             className="profile_input"
             value={tempUserDetails.firstName}
             onChange={(e) => handleUserDetailsChange('firstName', e.target.value)}
@@ -367,7 +368,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           <label className="profile_form_label">Last Name</label>
           <input 
             type="text" 
-            placeholder="Pratap" 
+            placeholder="Doe" 
             className="profile_input"
             value={tempUserDetails.lastName}
             onChange={(e) => handleUserDetailsChange('lastName', e.target.value)}
@@ -380,7 +381,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           <label className="profile_form_label">Phone</label>
           <input 
             type="text" 
-            placeholder="Enter phone" 
+            placeholder="(555) 123-4567" 
             className="profile_input"
             value={tempUserDetails.phone}
             onChange={(e) => handleUserDetailsChange('phone', e.target.value)}
@@ -393,7 +394,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           <label className="profile_form_label">Email</label>
           <input 
             type="email" 
-            placeholder="ram@gmail.com" 
+            placeholder="john@example.com" 
             className="profile_input"
             value={tempUserDetails.email}
             onChange={(e) => handleUserDetailsChange('email', e.target.value)}
@@ -403,7 +404,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
 
       <div className="profile_actions">
         <button className="profile_save_btn_blue" onClick={handleUserDetailsSave}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
             <polyline points="17 21 17 13 7 13 7 21"/>
             <polyline points="7 3 7 8 15 8"/>
@@ -444,7 +445,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
           </div>
 
           <button className="profile_logout_btn" onClick={handleLogout}>
-            <span className="profile_logout_icon">↪</span> Log Out
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Log Out
           </button>
         </div>
 
@@ -472,4 +478,3 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ onLogout }) => {
 };
 
 export default ProfilePage;
-

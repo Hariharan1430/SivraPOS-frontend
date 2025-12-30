@@ -45,8 +45,7 @@ interface ReceiptData {
   paymentMethod: string;
   subtotal: number;
   discount: number;
-  cgst: number;
-  sgst: number;
+  salesTax: number;
   total: number;
   buyerCashAmount: string;
   change: number;
@@ -59,10 +58,8 @@ interface ReceiptData {
     city: string;
     state: string;
     zipCode: string;
-    gstin: string;
-    taxEnabled: string;
-    cgstRate: string;
-    sgstRate: string;
+    taxId: string;
+    salesTaxRate: string;
     receiptFooterMessage: string;
   };
 }

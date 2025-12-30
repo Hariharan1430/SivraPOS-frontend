@@ -43,16 +43,14 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
 
   const [orderId, setOrderId] = useState(generateOrderId());
 
-  // Load company tax settings
+  // Load company tax settings for USA
   const getCompanyTaxSettings = () => {
-    const taxEnabled = localStorage.getItem('companyTaxEnabled') || 'disabled';
-    const cgstRate = parseFloat(localStorage.getItem('companyCgstRate') || '3') / 100;
-    const sgstRate = parseFloat(localStorage.getItem('companySgstRate') || '3') / 100;
+    const salesTaxRate = parseFloat(localStorage.getItem('companySalesTaxRate') || '0') / 100;
     
-    return { taxEnabled, cgstRate, sgstRate };
+    return { salesTaxRate };
   };
 
-  // Phone Number Validation
+  // USA Phone Number Validation (supports various formats)
   const validatePhoneNumber = (phone: string): boolean => {
     // Remove all non-digit characters
     const cleaned = phone.replace(/\D/g, '');
@@ -63,32 +61,67 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       return false;
     }
     
-    // Check if it's a valid length (10 digits for most countries, can be adjusted)
-    if (cleaned.length < 10) {
-      setPhoneError('Phone number must be at least 10 digits');
+    // USA phone numbers are exactly 10 digits (without country code) or 11 digits (with country code 1)
+    if (cleaned.length === 10) {
+      // Valid 10-digit US number
+      const areaCode = cleaned.substring(0, 3);
+      
+      // Check for invalid area codes (000, 1XX, etc.)
+      if (areaCode === '000' || areaCode === '555' || areaCode.startsWith('1')) {
+        setPhoneError('Invalid area code');
+        return false;
+      }
+      
+      setPhoneError('');
+      return true;
+    } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      // Valid 11-digit number starting with country code 1
+      const areaCode = cleaned.substring(1, 4);
+      
+      if (areaCode === '000' || areaCode === '555' || areaCode.startsWith('1')) {
+        setPhoneError('Invalid area code');
+        return false;
+      }
+      
+      setPhoneError('');
+      return true;
+    } else if (cleaned.length < 10) {
+      setPhoneError('Phone number must be 10 digits');
+      return false;
+    } else {
+      setPhoneError('Invalid phone number format');
       return false;
     }
+  };
+
+  // Format phone number as user types (XXX) XXX-XXXX
+  const formatPhoneNumber = (value: string): string => {
+    const cleaned = value.replace(/\D/g, '');
     
-    if (cleaned.length > 15) {
-      setPhoneError('Phone number must be less than 15 digits');
-      return false;
+    if (cleaned.length <= 3) {
+      return cleaned;
+    } else if (cleaned.length <= 6) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+    } else if (cleaned.length <= 10) {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+    } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7, 11)}`;
+    } else {
+      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
     }
-    
-    // Check if it contains only digits
-    if (!/^\d+$/.test(cleaned)) {
-      setPhoneError('Phone number must contain only digits');
-      return false;
-    }
-    
-    setPhoneError('');
-    return true;
   };
 
   // Handle phone number change
   const handlePhoneNumberChange = (value: string) => {
-    setPhoneNumber(value);
-    if (value.trim() !== '') {
-      validatePhoneNumber(value);
+    // Only allow digits, spaces, parentheses, hyphens, and plus sign
+    const sanitized = value.replace(/[^\d\s()\-+]/g, '');
+    const formatted = formatPhoneNumber(sanitized);
+    
+    setPhoneNumber(formatted);
+    
+    // Only validate if user has entered something
+    if (sanitized.replace(/\D/g, '').length > 0) {
+      validatePhoneNumber(sanitized);
     } else {
       setPhoneError('');
     }
@@ -244,8 +277,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
     }
 
     const taxSettings = getCompanyTaxSettings();
-    const cgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.cgstRate : 0;
-    const sgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.sgstRate : 0;
+    const salesTax = subtotalAfterDiscount * taxSettings.salesTaxRate;
     
     // Get company details from localStorage
     const companyDetails = {
@@ -256,10 +288,8 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       city: localStorage.getItem('companyCity') || '',
       state: localStorage.getItem('companyState') || '',
       zipCode: localStorage.getItem('companyZipCode') || '',
-      gstin: localStorage.getItem('companyGstin') || '',
-      taxEnabled: taxSettings.taxEnabled,
-      cgstRate: localStorage.getItem('companyCgstRate') || '3',
-      sgstRate: localStorage.getItem('companySgstRate') || '3',
+      taxId: localStorage.getItem('companyTaxId') || '',
+      salesTaxRate: localStorage.getItem('companySalesTaxRate') || '0',
       receiptFooterMessage: localStorage.getItem('companyReceiptFooterMessage') || '',
     };
 
@@ -272,8 +302,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
       paymentMethod,
       subtotal,
       discount: discountAmount,
-      cgst,
-      sgst,
+      salesTax,
       total,
       buyerCashAmount: paymentMethod === 'cash' ? buyerCashAmount : '0',
       change: paymentMethod === 'cash' ? change : 0,
@@ -301,10 +330,8 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
   const subtotalAfterDiscount = subtotal - discountAmount;
   
   const taxSettings = getCompanyTaxSettings();
-  const cgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.cgstRate : 0;
-  const sgst = taxSettings.taxEnabled === 'enabled' ? subtotalAfterDiscount * taxSettings.sgstRate : 0;
-  const taxAmount = cgst + sgst;
-  const total = subtotalAfterDiscount + taxAmount;
+  const salesTax = subtotalAfterDiscount * taxSettings.salesTaxRate;
+  const total = subtotalAfterDiscount + salesTax;
   const change = parseFloat(buyerCashAmount || '0') - total;
 
   // ==================== RENDER ====================
@@ -474,10 +501,16 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
                     }
                   }}
                   className={`info-input ${phoneError ? 'input-error' : ''}`}
-                  placeholder="Enter phone number"
+                  placeholder="(555) 123-4567"
+                  maxLength={16}
                   required={selectedOrderType === 'take-away'}
                 />
                 {phoneError && <span className="error-message">{phoneError}</span>}
+                {!phoneError && phoneNumber && (
+                  <span className="helper-text" style={{ fontSize: '12px', color: '#10b981', marginTop: '4px' }}>
+                    ✓ Valid US phone number
+                  </span>
+                )}
               </div>
               <div className="info-field">
                 <label className="info-label">
@@ -520,9 +553,9 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
                         <div className="item-details">
                           <h4 className="item-name">{item.name}</h4>
                           <div className="item-price-calc">
-                            <span className="item-unit-price">₹{item.price.toFixed(2)}</span>
+                            <span className="item-unit-price">${item.price.toFixed(2)}</span>
                             <span className="multiply">×</span>
-                            <span className="item-total-price">₹{(item.price * item.quantity).toFixed(2)}</span>
+                            <span className="item-total-price">${(item.price * item.quantity).toFixed(2)}</span>
                           </div>
                         </div>
                         <div className="quantity-controls">
@@ -592,27 +625,19 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
             <div className="payment-summary">
               <div className="summary-row">
                 <span className="summary-label">Subtotal</span>
-                <span className="summary-value">₹{subtotal.toFixed(2)}</span>
+                <span className="summary-value">${subtotal.toFixed(2)}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">Discount ({discount}%)</span>
-                <span className="summary-value">-₹{discountAmount.toFixed(2)}</span>
+                <span className="summary-value">-${discountAmount.toFixed(2)}</span>
               </div>
-              {taxSettings.taxEnabled === 'enabled' && (
-                <>
-                  <div className="summary-row">
-                    <span className="summary-label">CGST ({(taxSettings.cgstRate * 100).toFixed(2)}%)</span>
-                    <span className="summary-value">₹{cgst.toFixed(2)}</span>
-                  </div>
-                  <div className="summary-row">
-                    <span className="summary-label">SGST ({(taxSettings.sgstRate * 100).toFixed(2)}%)</span>
-                    <span className="summary-value">₹{sgst.toFixed(2)}</span>
-                  </div>
-                </>
-              )}
+              <div className="summary-row">
+                <span className="summary-label">Sales Tax ({(taxSettings.salesTaxRate * 100).toFixed(2)}%)</span>
+                <span className="summary-value">${salesTax.toFixed(2)}</span>
+              </div>
               <div className="summary-row total-row">
                 <span className="summary-label">Total</span>
-                <span className="summary-value total-value">₹{total.toFixed(2)}</span>
+                <span className="summary-value total-value">${total.toFixed(2)}</span>
               </div>
             </div>
 

@@ -18,8 +18,7 @@ interface ReceiptData {
   paymentMethod: string;
   subtotal: number;
   discount: number;
-  cgst: number;
-  sgst: number;
+  salesTax: number;
   total: number;
   buyerCashAmount: string;
   change: number;
@@ -32,10 +31,8 @@ interface ReceiptData {
     city: string;
     state: string;
     zipCode: string;
-    gstin: string;
-    taxEnabled: string;
-    cgstRate: string;
-    sgstRate: string;
+    taxId: string;
+    salesTaxRate: string;
     receiptFooterMessage: string;
   };
 }
@@ -72,7 +69,7 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -81,7 +78,7 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-IN', {
+    return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
@@ -90,7 +87,7 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
   };
 
   // Generate QR code data
-  const qrCodeData = `Receipt:${receiptData.orderId}|Total:₹${receiptData.total.toFixed(2)}|Date:${receiptData.timestamp}`;
+  const qrCodeData = `Receipt:${receiptData.orderId}|Total:$${receiptData.total.toFixed(2)}|Date:${receiptData.timestamp}`;
 
   return (
     <div className="receipt-bill-container">
@@ -98,7 +95,7 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
         {/* Header */}
         <div className="receipt-header">
           <h1 className="company-name">
-            {receiptData.companyDetails.name || 'RESTAURANT NAME'}
+            {receiptData.companyDetails.name || 'BUSINESS NAME'}
           </h1>
           {receiptData.companyDetails.address && (
             <p className="company-info">{receiptData.companyDetails.address}</p>
@@ -108,17 +105,17 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
               {receiptData.companyDetails.city && receiptData.companyDetails.city}
               {receiptData.companyDetails.city && receiptData.companyDetails.state && ', '}
               {receiptData.companyDetails.state && receiptData.companyDetails.state}
-              {receiptData.companyDetails.zipCode && ` - ${receiptData.companyDetails.zipCode}`}
+              {receiptData.companyDetails.zipCode && ` ${receiptData.companyDetails.zipCode}`}
             </p>
           )}
           {receiptData.companyDetails.phone && (
-            <p className="company-info">Ph: {receiptData.companyDetails.phone}</p>
+            <p className="company-info">Tel: {receiptData.companyDetails.phone}</p>
           )}
           {receiptData.companyDetails.email && (
             <p className="company-info">{receiptData.companyDetails.email}</p>
           )}
-          {receiptData.companyDetails.gstin && (
-            <p className="company-info">GSTIN: {receiptData.companyDetails.gstin}</p>
+          {receiptData.companyDetails.taxId && (
+            <p className="company-info">Tax ID: {receiptData.companyDetails.taxId}</p>
           )}
         </div>
 
@@ -135,12 +132,12 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
             <span className="info-value">{formatTime(receiptData.timestamp)}</span>
           </div>
           <div className="info-row">
-            <span className="info-label">Bill No:</span>
+            <span className="info-label">Receipt #:</span>
             <span className="info-value">{receiptData.orderId}</span>
           </div>
           {receiptData.orderType === 'dine-in' && receiptData.tableNumber && (
             <div className="info-row">
-              <span className="info-label">Table No:</span>
+              <span className="info-label">Table #:</span>
               <span className="info-value">{receiptData.tableNumber}</span>
             </div>
           )}
@@ -151,8 +148,8 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
             </div>
           )}
           <div className="info-row">
-            <span className="info-label">Type:</span>
-            <span className="info-value">{receiptData.orderType === 'dine-in' ? 'DINE IN' : 'TAKE AWAY'}</span>
+            <span className="info-label">Order Type:</span>
+            <span className="info-value">{receiptData.orderType === 'dine-in' ? 'DINE IN' : 'TAKE OUT'}</span>
           </div>
         </div>
 
@@ -162,8 +159,8 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
         <div className="items-header">
           <span className="item-header-qty">QTY</span>
           <span className="item-header-name">ITEM</span>
-          <span className="item-header-rate">RATE</span>
-          <span className="item-header-amount">AMOUNT</span>
+          <span className="item-header-rate">PRICE</span>
+          <span className="item-header-amount">TOTAL</span>
         </div>
 
         <div className="receipt-divider"></div>
@@ -175,8 +172,8 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
               <div className="item-line">
                 <span className="item-qty">{item.quantity}</span>
                 <span className="item-name">{item.name}</span>
-                <span className="item-rate">₹{item.price.toFixed(2)}</span>
-                <span className="item-amount">₹{(item.price * item.quantity).toFixed(2)}</span>
+                <span className="item-rate">${item.price.toFixed(2)}</span>
+                <span className="item-amount">${(item.price * item.quantity).toFixed(2)}</span>
               </div>
             </div>
           ))}
@@ -187,45 +184,48 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
         {/* Totals */}
         <div className="receipt-totals">
           <div className="total-row">
-            <span className="total-label">Sub Total:</span>
-            <span className="total-value">₹{receiptData.subtotal.toFixed(2)}</span>
+            <span className="total-label">Subtotal:</span>
+            <span className="total-value">${receiptData.subtotal.toFixed(2)}</span>
           </div>
           
           {receiptData.discount > 0 && (
             <div className="total-row">
               <span className="total-label">Discount:</span>
-              <span className="total-value">-₹{receiptData.discount.toFixed(2)}</span>
+              <span className="total-value">-${receiptData.discount.toFixed(2)}</span>
             </div>
           )}
           
-          {receiptData.companyDetails.taxEnabled === 'enabled' && (
-            <>
-              <div className="total-row">
-                <span className="total-label">CGST ({receiptData.companyDetails.cgstRate || '3'}%):</span>
-                <span className="total-value">₹{receiptData.cgst.toFixed(2)}</span>
-              </div>
-              
-              <div className="total-row">
-                <span className="total-label">SGST ({receiptData.companyDetails.sgstRate || '3'}%):</span>
-                <span className="total-value">₹{receiptData.sgst.toFixed(2)}</span>
-              </div>
-            </>
-          )}
+          <div className="total-row">
+            <span className="total-label">Sales Tax ({receiptData.companyDetails.salesTaxRate || '0'}%):</span>
+            <span className="total-value">${receiptData.salesTax.toFixed(2)}</span>
+          </div>
           
           <div className="receipt-divider-thick"></div>
           
           <div className="total-row total-final">
-            <span className="total-label-final">GRAND TOTAL:</span>
-            <span className="total-value-final">₹{receiptData.total.toFixed(2)}</span>
+            <span className="total-label-final">TOTAL:</span>
+            <span className="total-value-final">${receiptData.total.toFixed(2)}</span>
           </div>
 
           <div className="receipt-divider"></div>
 
           <div className="payment-info">
             <div className="payment-row">
-              <span className="payment-label">Payment Mode:</span>
+              <span className="payment-label">Payment:</span>
               <span className="payment-value">{receiptData.paymentMethod.toUpperCase()}</span>
             </div>
+            {receiptData.paymentMethod === 'cash' && (
+              <>
+                <div className="payment-row">
+                  <span className="payment-label">Cash Tendered:</span>
+                  <span className="payment-value">${parseFloat(receiptData.buyerCashAmount || '0').toFixed(2)}</span>
+                </div>
+                <div className="payment-row">
+                  <span className="payment-label">Change Due:</span>
+                  <span className="payment-value">${receiptData.change.toFixed(2)}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -244,9 +244,9 @@ const ReceiptBill: React.FC<ReceiptBillProps> = ({ receiptData, onClose }) => {
         {/* Footer */}
         <div className="receipt-footer">
           <p className="footer-text">
-            {receiptData.companyDetails.receiptFooterMessage || 'Thank You, Please Visit Again!'}
+            {receiptData.companyDetails.receiptFooterMessage || 'Thank You For Your Business!'}
           </p>
-          <p className="footer-subtext">Have a Great Day!</p>
+          <p className="footer-subtext">Please Come Again!</p>
         </div>
       </div>
     </div>
