@@ -8,13 +8,14 @@ import Product from './components/Product';
 import Stock from './components/Stock';
 import SignIn from './components/Signin';
 import SignUp from './components/Signup';
-import Delivery from './components/delivery';
-import Report from './components/report';
+import Delivery from './components/DeliveryDashboard';
+import Report from './components/ReportDashboard';
 import ProductCategories from './components/addproduct';
 import ReceiptBill from './components/Receipt';
 
 // ==================== INTERFACES ====================
-interface OrderItem {
+interface OrderItem 
+{
   id: number;
   name: string;
   price: number;
@@ -381,13 +382,13 @@ function App() {
       case 'deliver':
         return (
           <div className="main-content">
-            <Report />
+            <Delivery />
           </div>
         );
       case 'report':
         return (
           <div className="main-content">
-            <Delivery />
+            <Report/>
           </div>
         );
       case 'profile':

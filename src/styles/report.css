@@ -1,371 +1,301 @@
-@font-face {
-  font-family: "HK Grotesk Regular";
-  src: url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.eot");
-  src: url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.eot?#iefix")format("embedded-opentype"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff2")format("woff2"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.woff")format("woff"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.ttf")format("truetype"),
-  url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.svg#HK Grotesk Regular")format("svg");
-}
+/* Report.css */
 
-.report-main{
-  width: 100%;
-  background-color:#f8f9fb ;
-}
-.amount-color{
-  background-color: #f8f9fb;
-  padding: 20px;
-}
 .report-container {
-  width: 95%;
-  margin: 0 auto;
-  padding: 20px;
-  margin-bottom: 5%;
-  background-color: #f8f9fb;
-  font-family: "HK Grotesk Regular";
+  background-color: #f5f7fa;
+  min-height: 100vh;
+  padding: 0;
 }
 
-.report-header {
-  background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.report-id {
+.tabs-container {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.report-id-badge {
-  background-color: #4F9CF9;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.report-id-number {
-  color: #707070;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.report-table-container {
-  overflow-x: auto;
+  gap: 4px;
   background-color: white;
-  border-radius: 8px;
-}
-
-.report-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.report-table thead {
-  background-color: #fafbfc;
-}
-
-.report-table th {
-  text-align: left;
-  padding: 16px 20px;
-  font-weight: 600;
-  font-size: 13px;
-  color: #707070;
+  padding: 0 24px;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.report-table td {
-  padding: 18px 20px;
+.tab-button {
+  padding: 14px 28px;
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-weight: 600;
   font-size: 14px;
-  color: #333;
+  transition: all 0.3s;
+  position: relative;
+  top: 1px;
+}
+
+.tab-button.active {
+  background: #5b8def;
+  color: white;
+  top: 0;
+}
+
+.tab-button:hover:not(.active) {
+  background: #f9fafb;
+}
+
+.content-wrapper {
+  padding: 24px;
+}
+
+.dashboard-view {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 24px 0;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 10%;
+}
+
+.stats-header {
+  display: flex;
+  gap: 48px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  flex: 1;
+  min-width: 120px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat-value.green {
+  color: #10b981;
+}
+
+.stat-value.orange {
+  color: #f59e0b;
+}
+
+.stat-value.blue {
+  color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+.legend-container {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  margin-bottom: 16px;
+}
+
+.legend-container-horizontal {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  align-items: flex-start;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-dot.green {
+  background: #10b981;
+}
+
+.legend-dot.blue {
+  background: #3b82f6;
+}
+
+.legend-dot.orange {
+  background: #f59e0b;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.product-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+}
+
+.product-row.border {
   border-bottom: 1px solid #f3f4f6;
 }
 
-.report-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.report-product-cell {
+.product-info {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.report-product-image {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: #f8f9fb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  overflow: hidden;
+.product-rank {
+  color: #9ca3af;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 18px;
 }
 
-.report-product-image img {
-  width: 100%;
-  height: 100%;
+.product-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   object-fit: cover;
 }
 
-.report-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 8px;
-
-  
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.report-badge-green {
-  background-color: #10b981;
-  color: white;
-}
-
-.report-badge-orange {
-  background-color: #f59e0b;
-  color: white;
-}
-
-.report-price-cell {
-  color: #4F9CF9;
-  font-weight: 600;
-  font-size: 15px;
-}
-
-.report-details-grid {
-   display: grid;
-    grid-template-columns: 29% 29% 38%;
-    gap: 2%;
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-.report-detail-card {
-  background-color: white;
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.report-detail-card h3 {
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 24px;
+.product-name {
+  font-size: 14px;
   color: #1f2937;
-}
-
-.report-detail-row {
-  margin-bottom: 18px;
-}
-
-.report-detail-row:last-child {
-  margin-bottom: 0;
-}
-
-.report-detail-label {
-  font-size: 13px;
-  color: #707070;
-  margin-bottom: 8px;
   font-weight: 500;
 }
 
-.report-detail-input,
-.report-detail-select,
-.report-detail-textarea {
-  width: 100%;
-  font-size: 14px;
-  color: #1f2937;
-  padding: 12px 14px;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  outline: none;
-  transition: all 0.2s;
-  box-sizing: border-box;
-  font-family: "HK Grotesk Regular";
+.product-sales {
+  font-size: 15px;
+  font-weight: 600;
+  color: #5b8def;
 }
 
-.report-detail-input:focus,
-.report-detail-select:focus,
-.report-detail-textarea:focus {
-  background-color: white;
-  border-color: #4F9CF9;
-  box-shadow: 0 0 0 3px rgba(79, 156, 249, 0.1);
+.monthly-card {
+  margin-top: 0;
 }
 
-.report-detail-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  cursor: pointer;
-  padding-right: 40px;
-}
-
-.report-detail-textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-}
-
-.report-amount-row {
+.monthly-header {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Custom Tooltip Styles */
+.custom-tooltip {
+  background: #1f2937;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-label {
+  color: #9ca3af;
+  font-size: 12px;
+  margin: 0 0 8px 0;
+}
+
+.tooltip-item {
+  display: flex;
   align-items: center;
-  margin-bottom: 14px;
-  font-size: 14px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
-.report-amount-label {
-  color: #707070;
-  font-weight: 500;
-}
-
-.report-amount-value {
-  color: #1f2937;
-  font-weight: 600;
-}
-
-.report-amount-total {
-  padding-top: 14px;
-  border-top: 1px solid #e5e7eb;
-  margin-top: 8px;
+.tooltip-item:last-child {
   margin-bottom: 0;
 }
 
-.report-amount-total .report-amount-label,
-.report-amount-total .report-amount-value {
-  font-weight: 700;
-  color: #1f2937;
-  font-size: 16px;
+.tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
-.report-button-group {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.report-btn {
-  flex: 1;
-  padding: 14px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.report-btn-secondary {
-  background-color: white;
-  color: #4F9CF9;
-  border: 1px solid #e5e7eb;
-}
-
-.report-btn-secondary:hover {
-  background-color: #f9fafb;
-  border-color: #4F9CF9;
-}
-
-.report-btn-primary {
-  background-color: #4F9CF9;
+.tooltip-text {
   color: white;
-}
-
-.report-btn-primary:hover {
-  background-color: #3d85d9;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
-  .report-details-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .report-amount-card {
-    grid-column: 1 / -1;
-  }
-}
-
 @media (max-width: 768px) {
-  .report-container {
-    padding: 12px;
+  .tabs-container {
+    padding: 0 16px;
   }
 
-  .report-header,
-  .report-detail-card {
+  .content-wrapper {
     padding: 16px;
   }
 
-  .report-table th,
-  .report-table td {
-    padding: 12px 10px;
+  .tab-button {
+    padding: 12px 20px;
     font-size: 13px;
   }
 
-  .report-product-cell {
-    gap: 8px;
+  .stats-header {
+    gap: 24px;
   }
 
-  .report-product-image {
-    width: 40px;
-    height: 40px;
+  .stat-value {
+    font-size: 24px;
   }
 
-  .report-badge {
-    padding: 4px 12px;
-    font-size: 11px;
-  }
-
-  .report-details-grid {
+  .grid-container {
     grid-template-columns: 1fr;
-    gap: 16px;
   }
 
-  .report-button-group {
+  .monthly-header {
     flex-direction: column;
-  }
-
-  .report-btn {
-    width: 100%;
-  }
-
-  .report-table-container {
-    border-radius: 6px;
-  }
-
-  .report-table th:nth-child(2),
-  .report-table td:nth-child(2),
-  .report-table th:nth-child(3),
-  .report-table td:nth-child(3) {
-    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .report-id {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .page-title {
+    font-size: 20px;
   }
 
-  .report-table th,
-  .report-table td {
-    padding: 10px 8px;
-    font-size: 12px;
+  .stat-value {
+    font-size: 20px;
   }
 
-  .report-detail-card h3 {
-    font-size: 15px;
+  .stat-label {
+    font-size: 11px;
   }
 }
