@@ -8,14 +8,14 @@
     url("https://db.onlinewebfonts.com/t/534a5368a01e6e66e93f2d572868709a.svg#HK Grotesk Regular")format("svg");
 }
 
-.menu-container {
-  width: 95%;
-  margin: 0 auto;
-  padding: 20px;
+.menu-container 
+{ 
+   padding: 25px 30px;
   min-height: calc(100vh - 120px);
   overflow-y: auto;
   padding-bottom: 100px;
   transition: width 0.3s ease, margin-right 0.3s ease, filter 0.3s ease;
+  background-color: #fff;
 }
 
 /* When drawer is open - adjust menu container */

@@ -168,7 +168,7 @@ const SalesTax: React.FC = () => {
               />
             </div>
           </div>
-          <button onClick={filterData} className="search-button">
+          <button onClick={filterData} className="search-button_salestax">
             Search
           </button>
         </div>

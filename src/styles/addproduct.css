@@ -1,5 +1,7 @@
 /* ==================== PRODUCT CATEGORIES STYLES ==================== */
-
+.addproduct_backgroundcontainer{
+  background-color: #fff;
+}
 .addproduct-container {
   width: 90%;
   max-width: 1400px;
@@ -51,7 +53,7 @@
 }
 
 .addproduct-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 600;
   color: #1a1a1a;
   margin: 0;

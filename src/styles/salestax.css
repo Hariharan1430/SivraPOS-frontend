@@ -52,7 +52,7 @@
 }
 
 .summary-stats {
-  background: #fafbfd;
+  background: #fff;
   padding: 24px;
   border-radius: 8px;
   margin-bottom: 24px;
@@ -141,20 +141,20 @@
   cursor: pointer;
 }
 
-.search-button {
+.search-button_salestax {
   background: #5b8def;
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 12px 32px;
+  padding: 15px 32px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 10px;
+ 
   transition: background 0.2s;
 }
 
-.search-button:hover {
+.search-button_salestax:hover {
   background: #4a7dd9;
 }
 
@@ -364,7 +364,7 @@
     width: 100%;
   }
 
-  .search-button {
+  .search-button_salestax {
     width: 100%;
     margin-bottom: 0;
   }

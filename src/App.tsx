@@ -12,6 +12,8 @@ import Delivery from './components/DeliveryDashboard';
 import Report from './components/ReportDashboard';
 import ProductCategories from './components/addproduct';
 import ReceiptBill from './components/Receipt';
+import AddNewProduct from './components/AddNewProduct';
+import OrderHistory from './components/OrderHistory';
 
 // ==================== INTERFACES ====================
 interface OrderItem 
@@ -35,6 +37,26 @@ interface Category {
   name: string;
   color: string;
   initial: string;
+}
+
+interface ProductItem {
+  id: string;
+  name: string;
+  image: string;
+  category: string;
+  sku: string;
+  status: 'active' | 'inactive';
+  price: number;
+  description?: string;
+  costPrice?: number;
+  taxPercentage?: number;
+  quantity?: number;
+  unit?: string;
+  minQuantity?: number;
+  maxQuantity?: number;
+  trackQuantity?: boolean;
+  barcode?: string;
+  tags?: string;
 }
 
 interface ReceiptData {
@@ -83,6 +105,9 @@ function App() {
   // 🧾 Receipt State
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   
+  // 🔍 Search State
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
   // 📋 Header Ref for controlling drawer
   const headerRef = useRef<HeaderRef>(null);
 
@@ -115,6 +140,19 @@ function App() {
 
     // Load categories from localStorage (managed by ProductCategories component)
     loadCategories();
+  }, []);
+
+  // ==================== LISTEN FOR NAVIGATION EVENTS ====================
+  useEffect(() => {
+    const handleNavigateToMenu = () => {
+      setActiveTab('menu');
+    };
+
+    window.addEventListener('navigateToMenu', handleNavigateToMenu);
+
+    return () => {
+      window.removeEventListener('navigateToMenu', handleNavigateToMenu);
+    };
   }, []);
 
   // ==================== CHECK FOR PENDING RECEIPT ====================
@@ -198,6 +236,7 @@ function App() {
     setOrderItems([]);
     setIsDrawerOpen(false);
     setReceiptData(null);
+    setSearchTerm('');
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('currentOrder');
     sessionStorage.removeItem('activeTab');
@@ -213,6 +252,11 @@ function App() {
 
   const handleDrawerStateChange = (isOpen: boolean) => {
     setIsDrawerOpen(isOpen);
+  };
+
+  // ==================== SEARCH HANDLER ====================
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
   };
 
   // ==================== CATEGORY HANDLERS ====================
@@ -237,6 +281,17 @@ function App() {
     
     // Return to menu
     setActiveTab('menu');
+  };
+
+  // ==================== ADD NEW PRODUCT HANDLERS ====================
+  const handleProductAdded = (product: ProductItem) => {
+    console.log('Product added successfully:', product);
+    // Navigate back to product page
+    setActiveTab('product');
+  };
+
+  const handleCloseAddProduct = () => {
+    setActiveTab('product');
   };
 
   // ==================== ORDER MANAGEMENT HANDLERS ====================
@@ -332,6 +387,12 @@ function App() {
   // ==================== MAIN CONTENT RENDERER ====================
   const renderContent = () => {
     switch (activeTab) {
+      case 'order-history':
+        return (
+          <div className="main-content">
+            <OrderHistory />
+          </div>
+        );
       case 'receipt':
         return receiptData ? (
           <ReceiptBill 
@@ -355,6 +416,7 @@ function App() {
               orderItems={getOrderItemsForMenu()}
               onOpenDrawer={handleOpenDrawer}
               isDrawerOpen={isDrawerOpen}
+              searchTerm={searchTerm}
             />
           </div>
         );
@@ -363,6 +425,13 @@ function App() {
           <div className="main-content">
             <Product />
           </div>
+        );
+      case 'add-new-product':
+        return (
+          <AddNewProduct
+            onClose={handleCloseAddProduct}
+            onAdd={handleProductAdded}
+          />
         );
       case 'product-categories':
         return (
@@ -402,6 +471,7 @@ function App() {
               orderItems={getOrderItemsForMenu()}
               onOpenDrawer={handleOpenDrawer}
               isDrawerOpen={isDrawerOpen}
+              searchTerm={searchTerm}
             />
           </div>
         );
@@ -410,8 +480,8 @@ function App() {
 
   // ==================== MAIN APP LAYOUT ====================
   return (
-    <div className={`app-container ${activeTab === 'receipt' ? 'receipt-view' : ''}`}>
-      {activeTab !== 'receipt' && (
+    <div className={`app-container ${activeTab === 'receipt' ? 'receipt-view' : ''} ${activeTab === 'add-new-product' ? 'add-product-view' : ''} ${activeTab === 'order-history' ? 'order-history-view' : ''}`}>
+      {activeTab !== 'receipt' && activeTab !== 'add-new-product' && activeTab !== 'order-history' && (
         <Header 
           ref={headerRef}
           activeTab={activeTab} 
@@ -419,10 +489,11 @@ function App() {
           orderItems={orderItems}
           onUpdateOrderItems={handleUpdateOrderItems}
           onDrawerStateChange={handleDrawerStateChange}
+          onSearch={handleSearch}
         />
       )}
       {renderContent()}
-      {activeTab !== 'receipt' && (
+      {activeTab !== 'receipt' && activeTab !== 'add-new-product' && activeTab !== 'order-history' && (
         <Footer activeTab={activeTab} setActiveTab={setActiveTab} />
       )}
     </div>

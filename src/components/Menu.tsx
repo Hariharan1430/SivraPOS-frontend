@@ -34,6 +34,7 @@ interface MenuPageProps {
   orderItems?: { id: number; quantity: number }[];
   onOpenDrawer?: () => void;
   isDrawerOpen?: boolean;
+  searchTerm?: string;
 }
 
 const MenuPage: React.FC<MenuPageProps> = ({ 
@@ -41,7 +42,8 @@ const MenuPage: React.FC<MenuPageProps> = ({
   onUpdateQuantity, 
   orderItems = [],
   onOpenDrawer,
-  isDrawerOpen = false
+  isDrawerOpen = false,
+  searchTerm = ''
 }) => {
   const [activeCategory, setActiveCategory] = useState('Best Seller');
   const [sortBy, setSortBy] = useState('name');
@@ -254,13 +256,30 @@ const MenuPage: React.FC<MenuPageProps> = ({
     }
   };
 
+  const filterItemsBySearch = (items: MenuItem[]) => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return items;
+    }
+    
+    const lowerSearchTerm = searchTerm.toLowerCase().trim();
+    return items.filter(item => 
+      item.name.toLowerCase().includes(lowerSearchTerm) ||
+      item.category.toLowerCase().includes(lowerSearchTerm)
+    );
+  };
+
   const sortItems = (items: MenuItem[]) => {
     let filteredItems = items;
     
+    // Apply search filter first
+    filteredItems = filterItemsBySearch(filteredItems);
+    
+    // Apply status filter
     if (statusFilter === 'active') {
-      filteredItems = items.filter(item => item.status === 'Available');
+      filteredItems = filteredItems.filter(item => item.status === 'Available');
     }
 
+    // Apply sorting
     const sortedItems = [...filteredItems].sort((a, b) => {
       if (sortBy === 'name') {
         return sortOrder === 'asc' 
@@ -305,19 +324,34 @@ const MenuPage: React.FC<MenuPageProps> = ({
     const sortedItems = sortItems(items);
     const itemCount = sortedItems.length;
 
+    // Show search results message if searching
+    const showingSearchResults = searchTerm && searchTerm.trim() !== '';
+
     return (
       <div className="section">
         <div className="section-header">
           <div className="section-title-wrapper">
-            <h2>{activeCategory} ({itemCount})</h2>
-            <span className="badge">Top performer - Monthly</span>
+            <h2>
+              {showingSearchResults ? `Search Results (${itemCount})` : `${activeCategory} (${itemCount})`}
+            </h2>
+            {!showingSearchResults && <span className="badge">Top performer - Monthly</span>}
+            {showingSearchResults && (
+              <span className="search-badge">Searching for: "{searchTerm}"</span>
+            )}
           </div>
         </div>
         
         <div className="items-grid">
           {sortedItems.length === 0 ? (
             <div className="menu-empty-state">
-              <p>No items found in this category</p>
+              {showingSearchResults ? (
+                <>
+                  <p>No items found matching "{searchTerm}"</p>
+                  <span className="empty-subtitle">Try different keywords or browse categories</span>
+                </>
+              ) : (
+                <p>No items found in this category</p>
+              )}
             </div>
           ) : (
             sortedItems.map((item) => {
@@ -431,4 +465,4 @@ const MenuPage: React.FC<MenuPageProps> = ({
   );
 };
 
-export default MenuPage;  
+export default MenuPage;

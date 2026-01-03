@@ -55,7 +55,7 @@ const Report: React.FC = () => {
   const monthlyData: ChartData[] = [
     { month: 'January', lastMonth: 280, currentMonth: 320 },
     { month: 'February', lastMonth: 420, currentMonth: 380 },
-    { month: 'March', lastMonth: 520, currentMonth: 580 },
+    { month: 'March', lastMonth: 200, currentMonth: 250 },
     { month: 'April', lastMonth: 650, currentMonth: 720 },
     { month: 'May', lastMonth: 580, currentMonth: 620 },
     { month: 'June', lastMonth: 480, currentMonth: 520 }

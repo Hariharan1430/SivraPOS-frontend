@@ -17,6 +17,7 @@ interface HeaderProps {
   orderItems: OrderItem[];
   onUpdateOrderItems: (items: OrderItem[]) => void;
   onDrawerStateChange?: (isOpen: boolean) => void;
+  onSearch?: (searchTerm: string) => void;
 }
 
 export interface HeaderRef {
@@ -24,7 +25,14 @@ export interface HeaderRef {
 }
 
 // ==================== COMPONENT ====================
-const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, orderItems, onUpdateOrderItems, onDrawerStateChange }, ref) => {
+const Header = forwardRef<HeaderRef, HeaderProps>(({ 
+  activeTab, 
+  setActiveTab, 
+  orderItems, 
+  onUpdateOrderItems, 
+  onDrawerStateChange,
+  onSearch 
+}, ref) => {
   // State Management
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState<boolean>(false);
@@ -35,6 +43,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [buyerCashAmount, setBuyerCashAmount] = useState<string>('');
   const [discount, setDiscount] = useState<string>('0');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Generate Order ID
   const generateOrderId = () => {
@@ -127,6 +136,29 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
     }
   };
 
+  // Handle search input change
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    if (onSearch) {
+      onSearch(value);
+    }
+  };
+
+  // Handle search button click
+  const handleSearchClick = () => {
+    if (onSearch) {
+      onSearch(searchTerm);
+    }
+  };
+
+  // Handle Orders button click
+  const handleOrdersClick = () => {
+    if (setActiveTab) {
+      setActiveTab('order-history');
+    }
+  };
+
   // Expose openDrawer method to parent component
   useImperativeHandle(ref, () => ({
     openDrawer: () => {
@@ -186,6 +218,12 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
   const handleProductCategoryClick = () => {
     if (setActiveTab) {
       setActiveTab('product-categories');
+    }
+  };
+
+  const handleAddProductClick = () => {
+    if (setActiveTab) {
+      setActiveTab('add-new-product');
     }
   };
 
@@ -355,8 +393,19 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
                     type="text"
                     placeholder="Searching for a item..."
                     className="search-input"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearchClick();
+                      }
+                    }}
                   />
-                  <button className="search-button" aria-label="Search">
+                  <button 
+                    className="search-button" 
+                    aria-label="Search"
+                    onClick={handleSearchClick}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="20"
@@ -387,7 +436,7 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
               {showOrderBtn && (
                 <button
                   className="order-icon-button"
-                  onClick={() => (window.location.href = '/order')}
+                  onClick={handleOrdersClick}
                 >
                   <img src={orderIcon} alt="Orders" className="order-icon" />
                   Orders
@@ -403,7 +452,9 @@ const Header = forwardRef<HeaderRef, HeaderProps>(({ activeTab, setActiveTab, or
 
               {/* Add Product Button */}
               {showAddProductBtn && (
-                <button className="add-product-btn">+ Add Product</button>
+                <button className="add-product-btn" onClick={handleAddProductClick}>
+                  + Add Product
+                </button>
               )}
 
               {/* Manage Stock Button */}

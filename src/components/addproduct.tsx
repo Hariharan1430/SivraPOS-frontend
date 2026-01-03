@@ -213,6 +213,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
     .filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
+    <div className='addproduct_backgroundcontainer'>
     <div className="addproduct-container">
       {/* Header */}
       <div className="addproduct-header">
@@ -385,6 +386,7 @@ const ProductCategories: React.FC<ProductCategoriesProps> = ({ onCategoriesUpdat
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };
